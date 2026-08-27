@@ -3,37 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EscalaMed — Acesso</title>
+    <title>EscalaMed — Gestão Inteligente de Escalas Médicas</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col justify-between">
+    <!-- Cabeçalho -->
     <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <span class="text-emerald-600 font-bold text-xl">✚ EscalaMed</span>
+        <div class="text-emerald-600 font-bold text-xl">✚ EscalaMed</div>
+        <div class="space-x-4">
+            <a href="login-medico.html" class="text-sm font-medium text-gray-600 hover:text-emerald-600">Área Médica</a>
         </div>
-        <a href="#" class="text-emerald-600 font-medium hover:underline">Criar conta</a>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-12 text-center">
-        <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">Acesso seguro e personalizado</span>
-        <h1 class="text-4xl font-bold text-gray-900 mt-4 mb-2">Como você quer acessar o EscalaMed?</h1>
-        <p class="text-gray-600 mb-12">Escolha seu perfil para entrar no fluxo correto. Seus dados e permissões serão protegidos de acordo com a LGPD.</p>
+    <!-- Conteúdo Principal -->
+    <main class="max-w-5xl mx-auto p-8 w-full flex-1 flex flex-col justify-center items-center text-center">
+        <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">Plataforma Inteligente de Saúde</span>
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Escolha como deseja acessar o EscalaMed</h1>
+        <p class="text-gray-600 max-w-xl mb-10 text-sm">Gerenciamento de escalas sem conflitos para profissionais e transparência total no atendimento para os pacientes.</p>
 
-        <div class="grid md:grid-cols-2 gap-8 text-left">
-            <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:shadow-md transition">
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Sou paciente</h3>
-                <p class="text-gray-600 text-sm mb-6">Consulte as instituições vinculadas, compare demanda, profissionais disponíveis e tempo estimado.</p>
-                <button class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition">Continuar como paciente</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+            <!-- Card Paciente -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:border-emerald-500 transition flex flex-col justify-between">
+                <div>
+                    <span class="text-3xl mb-4 block">🏥</span>
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">Sou Paciente</h2>
+                    <p class="text-gray-600 text-sm mb-6">Consulte sua unidade de saúde de referência, status da fila e médicos em plantão.</p>
+                </div>
+                <a href="paciente.html" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition block text-center">Continuar como Paciente</a>
             </div>
 
-            <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:shadow-md transition">
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Sou médico ou profissional de saúde</h3>
-                <p class="text-gray-600 text-sm mb-6">Consulte sua escala por instituição e setor. Solicite trocas, justifique faltas e acompanhe alertas de jornada com apoio da IA.</p>
-                <a href="login-medico.html" class="block text-center w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition">Continuar como profissional</a>
+            <!-- Card Médico -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:border-emerald-500 transition flex flex-col justify-between">
+                <div>
+                    <span class="text-3xl mb-4 block">🩺</span>
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">Sou Profissional</h2>
+                    <p class="text-gray-600 text-sm mb-6">Acesse seu painel, gerencie sua jornada, trocas de plantão e conformidade.</p>
+                </div>
+                <a href="login-medico.html" class="w-full bg-gray-900 text-white font-medium py-3 rounded-xl hover:bg-gray-800 transition block text-center">Acessar Painel Médico</a>
             </div>
         </div>
     </main>
 
-    <footer class="text-center py-6 text-gray-400 text-xs">EscalaMed — Gestão Inteligente de Escalas</footer>
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-400">
+        EscalaMed — Gestão inteligente e transparente de escalas médicas.
+    </footer>
 </body>
 </html>
