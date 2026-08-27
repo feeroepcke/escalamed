@@ -6,80 +6,43 @@
     <title>EscalaMed — Painel do Médico</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between">
-        <div>
-            <div class="text-emerald-600 font-bold text-xl mb-8">✚ EscalaMed</div>
-            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Instituição</div>
-            <div class="bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-xl p-3 font-medium text-sm mb-6">Hospital Santo Antônio</div>
-            
-            <nav class="space-y-2 text-sm">
-                <a href="#" class="block px-3 py-2 rounded-lg bg-emerald-100 text-emerald-900 font-medium">Visão geral</a>
-                <a href="#" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100">Minha escala</a>
-                <a href="#" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100">Trocas de plantão</a>
-                <a href="#" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100">Faltas e documentos</a>
-            </nav>
-        </div>
-    </aside>
+<body class="bg-gray-50 min-h-screen flex flex-col justify-between">
+    <!-- Cabeçalho -->
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+        <div class="text-emerald-600 font-bold text-xl">✚ EscalaMed <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-normal ml-2">Painel Médico</span></div>
+        <button onclick="logout()" class="text-sm text-red-600 hover:text-red-700 font-medium">Sair</button>
+    </header>
 
     <!-- Conteúdo Principal -->
-    <main class="flex-1 p-10">
-        <header class="flex justify-between items-center mb-8">
-            <div>
-                <h1 id="doctorNameTitle" class="text-3xl font-bold text-gray-900">Bom dia, Profissional</h1>
-                <p class="text-gray-600 text-sm">Sua jornada está organizada e sem conflitos para os próximos 7 dias.</p>
-            </div>
-            <div class="flex items-center space-x-3 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                <div id="doctorInitials" class="bg-emerald-100 text-emerald-800 font-bold rounded-full w-8 h-8 flex items-center justify-center text-sm">MD</div>
-                <div>
-                    <p id="doctorNameCard" class="text-sm font-bold text-gray-900">Carregando...</p>
-                    <p id="doctorDetailsCard" class="text-xs text-gray-500">Aguardando dados</p>
-                </div>
-            </div>
-        </header>
-
-        <!-- Alerta de Conformidade -->
-        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-8 flex items-center space-x-3 text-emerald-900">
-            <span class="text-emerald-600 font-bold text-lg">✔</span>
-            <p class="text-sm"><strong>Jornada em conformidade:</strong> 36 h trabalhadas nos últimos 7 dias • 12 h de descanso antes do próximo plantão • nenhum conflito entre instituições.</p>
+    <main class="max-w-5xl mx-auto p-6 w-full flex-1 space-y-6">
+        <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+            <h1 class="text-2xl font-bold text-gray-900 mb-1">Painel de Plantões e Escalas</h1>
+            <p id="doctorWelcome" class="text-gray-600 text-sm">Carregando dados do profissional...</p>
         </div>
 
-        <!-- Estatísticas Rápidas -->
-        <div class="grid grid-cols-4 gap-6 mb-8">
-            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-center">
-                <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Próximo plantão</p>
-                <p class="text-xl font-bold text-gray-900">Hoje 19h</p>
-            </div>
-            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-center">
-                <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Carga horária</p>
-                <p class="text-xl font-bold text-gray-900">36 h</p>
-            </div>
-            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 shadow-sm text-center">
-                <p class="text-emerald-700 text-xs uppercase font-semibold mb-1">Descanso programado</p>
-                <p class="text-xl font-bold text-emerald-900">12 h</p>
-            </div>
-            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-center">
-                <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Trocas pendentes</p>
-                <p class="text-xl font-bold text-gray-900">1</p>
+        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Seus Próximos Plantões</h2>
+            <div class="border border-gray-100 rounded-xl p-4 bg-gray-50 text-sm text-gray-600">
+                Nenhum plantão alocado no momento. O calendário de escalas do setor será exibido aqui.
             </div>
         </div>
     </main>
 
-    <script>
-        // Recupera os dados salvos no navegador após o cadastro
-        const userData = JSON.parse(localStorage.getItem('escalamed_user'));
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-400">
+        EscalaMed — Gestão inteligente e transparente de escalas médicas.
+    </footer>
 
-        if (userData) {
-            document.getElementById('doctorNameTitle').innerText = `Bom dia, ${userData.registry}`;
-            document.getElementById('doctorNameCard').innerText = userData.registry;
-            document.getElementById('doctorDetailsCard').innerText = `${userData.category} • ${userData.council}-${userData.registry}`;
-            
-            const initials = userData.registry.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-            document.getElementById('doctorInitials').innerText = initials || 'MD';
-        } else {
-            // Se não houver sessão ativa, redireciona para o login
-            window.location.href = 'login-medico.html';
+    <script>
+        const doctorData = localStorage.getItem('doctor_user');
+        if (doctorData) {
+            const doctor = JSON.parse(doctorData);
+            document.getElementById('doctorWelcome').textContent = `Bem-vindo(a), ${doctor.email}`;
+        }
+
+        function logout() {
+            localStorage.removeItem('doctor_user');
+            window.location.href = 'medico.html';
         }
     </script>
 </body>
