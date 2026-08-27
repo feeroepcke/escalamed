@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen flex">
+    <!-- Sidebar -->
     <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between">
         <div>
             <div class="text-emerald-600 font-bold text-xl mb-8">✚ EscalaMed</div>
@@ -22,26 +23,29 @@
         </div>
     </aside>
 
+    <!-- Conteúdo Principal -->
     <main class="flex-1 p-10">
         <header class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Bom dia, Dra. Helena</h1>
+                <h1 id="doctorNameTitle" class="text-3xl font-bold text-gray-900">Bom dia, Profissional</h1>
                 <p class="text-gray-600 text-sm">Sua jornada está organizada e sem conflitos para os próximos 7 dias.</p>
             </div>
             <div class="flex items-center space-x-3 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
-                <div class="bg-emerald-100 text-emerald-800 font-bold rounded-full w-8 h-8 flex items-center justify-center text-sm">HC</div>
+                <div id="doctorInitials" class="bg-emerald-100 text-emerald-800 font-bold rounded-full w-8 h-8 flex items-center justify-center text-sm">MD</div>
                 <div>
-                    <p class="text-sm font-bold text-gray-900">Dra. Helena Costa</p>
-                    <p class="text-xs text-gray-500">Clínica Geral • CRM-SC 12345</p>
+                    <p id="doctorNameCard" class="text-sm font-bold text-gray-900">Carregando...</p>
+                    <p id="doctorDetailsCard" class="text-xs text-gray-500">Aguardando dados</p>
                 </div>
             </div>
         </header>
 
+        <!-- Alerta de Conformidade -->
         <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-8 flex items-center space-x-3 text-emerald-900">
             <span class="text-emerald-600 font-bold text-lg">✔</span>
             <p class="text-sm"><strong>Jornada em conformidade:</strong> 36 h trabalhadas nos últimos 7 dias • 12 h de descanso antes do próximo plantão • nenhum conflito entre instituições.</p>
         </div>
 
+        <!-- Estatísticas Rápidas -->
         <div class="grid grid-cols-4 gap-6 mb-8">
             <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm text-center">
                 <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Próximo plantão</p>
@@ -61,5 +65,22 @@
             </div>
         </div>
     </main>
+
+    <script>
+        // Recupera os dados salvos no navegador após o cadastro
+        const userData = JSON.parse(localStorage.getItem('escalamed_user'));
+
+        if (userData) {
+            document.getElementById('doctorNameTitle').innerText = `Bom dia, ${userData.registry}`;
+            document.getElementById('doctorNameCard').innerText = userData.registry;
+            document.getElementById('doctorDetailsCard').innerText = `${userData.category} • ${userData.council}-${userData.registry}`;
+            
+            const initials = userData.registry.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('doctorInitials').innerText = initials || 'MD';
+        } else {
+            // Se não houver sessão ativa, redireciona para o login
+            window.location.href = 'login-medico.html';
+        }
+    </script>
 </body>
 </html>

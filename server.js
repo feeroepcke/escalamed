@@ -31,19 +31,9 @@ function initDatabase() {
         registry TEXT,
         user_type TEXT
     )`);
-
-    db.run(`CREATE TABLE IF NOT EXISTS shifts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        doctor_name TEXT,
-        sector TEXT,
-        date TEXT,
-        time TEXT,
-        status TEXT
-    )`);
 }
 
 // Rota de Cadastro de Médico
-api_url = '/api/register-doctor';
 app.post('/api/register-doctor', (req, res) => {
     const { cpf, email, password, category, council, registry } = req.body;
     const query = `INSERT INTO users (cpf, email, password, category, council, registry, user_type) VALUES (?, ?, ?, ?, ?, ?, 'doctor')`;
@@ -53,6 +43,30 @@ app.post('/api/register-doctor', (req, res) => {
             return res.status(400).json({ error: 'Erro ao cadastrar. CPF ou registro já podem existir.' });
         }
         res.json({ success: true, userId: this.lastID });
+    });
+});
+
+// Rota de Login do Médico
+app.post('/api/login-doctor', (req, res) => {
+    const { email, password } = req.body;
+    const query = `SELECT * FROM users WHERE email = ? AND password = ? AND user_type = 'doctor'`;
+    
+    db.get(query, [email, password], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: 'Erro no servidor.' });
+        }
+        if (!row) {
+            return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+        }
+        res.json({ 
+            success: true, 
+            user: { 
+                registry: row.registry, 
+                email: row.email, 
+                category: row.category, 
+                council: row.council 
+            } 
+        });
     });
 });
 
