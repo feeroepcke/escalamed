@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EscalaMed — Consulta do Paciente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col justify-between">
+    <!-- Cabeçalho -->
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
+        <div class="text-emerald-600 font-bold text-xl">✚ EscalaMed <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-normal ml-2">Portal do Paciente</span></div>
+        <a href="index.html" class="text-sm text-gray-600 hover:text-emerald-600 font-medium">Voltar ao início</a>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="max-w-4xl mx-auto p-6 w-full flex-1">
+        <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm mb-6">
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Consulte sua unidade e atendimento</h1>
+            <p class="text-gray-600 text-sm mb-6">Insira seu CPF para verificar sua unidade de saúde de referência e os profissionais em atendimento.</p>
+            
+            <form id="patientForm" class="flex gap-4">
+                <input type="text" id="patientCpf" placeholder="Digite seu CPF (000.000.000-00)" class="flex-1 border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
+                <button type="submit" class="bg-emerald-600 text-white font-medium px-6 py-3 rounded-xl hover:bg-emerald-700 transition">Consultar</button>
+            </form>
+        </div>
+
+        <!-- Resultado da Consulta (Oculto inicialmente) -->
+        <div id="resultContainer" class="hidden space-y-6">
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+                <span class="text-xs bg-emerald-200 text-emerald-900 font-semibold px-2.5 py-1 rounded-md">Unidade de Referência</span>
+                <h2 id="unitName" class="text-xl font-bold text-gray-900 mt-2">UBS Centro - Hospital Santo Antônio</h2>
+                <p id="unitAddress" class="text-gray-600 text-sm mt-1">Rua São Paulo, 750 • Blumenau / SC</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Status da Fila</p>
+                    <p class="text-2xl font-bold text-gray-900">Normal / Baixa espera</p>
+                    <p class="text-xs text-emerald-600 mt-1">Tempo estimado de atendimento: ~15 min</p>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                    <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Profissionais no Plantão</p>
+                    <p class="text-2xl font-bold text-gray-900">3 médicos ativos</p>
+                    <p class="text-xs text-gray-500 mt-1">Clínica Geral e Pediatria</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-400">
+        EscalaMed — Gestão inteligente e transparente de escalas médicas.
+    </footer>
+
+    <script>
+        document.getElementById('patientForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cpf = document.getElementById('patientCpf').value;
+            
+            if (cpf.length < 10) {
+                alert('Por favor, insira um CPF válido.');
+                return;
+            }
+
+            // Exibe o painel de resultados simulando a busca da unidade vinculada ao cidadão
+            document.getElementById('resultContainer').classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
