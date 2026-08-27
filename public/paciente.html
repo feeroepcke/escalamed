@@ -3,72 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EscalaMed — Consulta do Paciente</title>
+    <title>EscalaMed — Cadastro de Paciente</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col justify-between">
-    <!-- Cabeçalho -->
-    <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
-        <div class="text-emerald-600 font-bold text-xl">✚ EscalaMed <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-normal ml-2">Portal do Paciente</span></div>
-        <a href="index.html" class="text-sm text-gray-600 hover:text-emerald-600 font-medium">Voltar ao início</a>
-    </header>
-
-    <!-- Conteúdo Principal -->
-    <main class="max-w-4xl mx-auto p-6 w-full flex-1">
-        <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm mb-6">
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">Consulte sua unidade e atendimento</h1>
-            <p class="text-gray-600 text-sm mb-6">Insira seu CPF para verificar sua unidade de saúde de referência e os profissionais em atendimento.</p>
+<body class="bg-gray-50 flex min-h-screen">
+    <!-- Lado Esquerdo (Banner Informativo igual ao protótipo) -->
+    <div class="hidden lg:flex w-1/2 bg-emerald-50 p-16 flex-col justify-between border-r border-emerald-100">
+        <div>
+            <span class="text-emerald-700 font-bold text-xl flex items-center gap-2">✚ EscalaMed</span>
+        </div>
+        <div>
+            <span class="bg-emerald-200 text-emerald-900 text-xs font-semibold px-3 py-1 rounded-full">Acesso do paciente</span>
+            <h1 class="text-4xl font-bold text-gray-900 mt-4 mb-4">Seu posto de referência, sem adivinhação.</h1>
+            <p class="text-gray-700 text-sm mb-8">Ao informar seu CPF, o EscalaMed identifica a unidade de Atenção Primária vinculada ao seu cadastro e mostra opções de atendimento na rede.</p>
             
-            <form id="patientForm" class="flex gap-4">
-                <input type="text" id="patientCpf" placeholder="Digite seu CPF (000.000.000-00)" class="flex-1 border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
-                <button type="submit" class="bg-emerald-600 text-white font-medium px-6 py-3 rounded-xl hover:bg-emerald-700 transition">Consultar</button>
+            <div class="space-y-6">
+                <div class="flex items-start space-x-3">
+                    <span class="text-emerald-600 text-xl font-bold">✔</span>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-sm">Demanda em tempo real</h3>
+                        <p class="text-xs text-gray-600">Compare lotação, profissionais disponíveis e espera estimada.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <span class="text-emerald-600 text-xl font-bold">🔔</span>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-sm">Aviso de melhor horário</h3>
+                        <p class="text-xs text-gray-600">Receba um e-mail quando a instituição escolhida estiver com baixa demanda.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-xs text-gray-400">Protegido por criptografia e LGPD.</div>
+    </div>
+
+    <!-- Lado Direito (Formulário idêntico ao protótipo) -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm w-full max-w-lg">
+            <span class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-medium">Etapa 1 de 2</span>
+            <h2 class="text-2xl font-bold text-gray-900 mt-3 mb-2">Crie sua conta de paciente</h2>
+            <p class="text-xs text-gray-500 mb-6">Usaremos seu CPF apenas para localizar sua unidade de referência e personalizar o acesso.</p>
+            
+            <form id="patientForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CPF</label>
+                    <input type="text" id="cpf" placeholder="000.000.000-00" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                    <input type="email" id="email" placeholder="voce@exemplo.com" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <input type="password" id="password" placeholder="Mínimo de 8 caracteres" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
+                </div>
+                <div class="flex items-center space-x-2 pt-2">
+                    <input type="checkbox" id="alerts" class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500" checked>
+                    <label for="alerts" class="text-xs text-gray-600 font-medium">Quero receber alertas de baixa demanda</label>
+                </div>
+                <p class="text-[11px] text-gray-400 pl-6">Você poderá escolher as instituições depois do cadastro.</p>
+
+                <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-4">Criar conta e localizar minha unidade</button>
             </form>
         </div>
-
-        <!-- Resultado da Consulta (Oculto inicialmente) -->
-        <div id="resultContainer" class="hidden space-y-6">
-            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-                <span class="text-xs bg-emerald-200 text-emerald-900 font-semibold px-2.5 py-1 rounded-md">Unidade de Referência</span>
-                <h2 id="unitName" class="text-xl font-bold text-gray-900 mt-2">UBS Centro - Hospital Santo Antônio</h2>
-                <p id="unitAddress" class="text-gray-600 text-sm mt-1">Rua São Paulo, 750 • Blumenau / SC</p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-6">
-                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                    <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Status da Fila</p>
-                    <p class="text-2xl font-bold text-gray-900">Normal / Baixa espera</p>
-                    <p class="text-xs text-emerald-600 mt-1">Tempo estimado de atendimento: ~15 min</p>
-                </div>
-                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                    <p class="text-gray-500 text-xs uppercase font-semibold mb-1">Profissionais no Plantão</p>
-                    <p class="text-2xl font-bold text-gray-900">3 médicos ativos</p>
-                    <p class="text-xs text-gray-500 mt-1">Clínica Geral e Pediatria</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Rodapé -->
-    <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-400">
-        EscalaMed — Gestão inteligente e transparente de escalas médicas.
-    </footer>
+    </div>
 
     <script>
         document.getElementById('patientForm').addEventListener('submit', (e) => {
-            e.preventDefault(); // Impede o recarregamento padrão da página
-            const cpf = document.getElementById('patientCpf').value;
-            
-            if (cpf.trim() === '') {
-                alert('Por favor, insira um CPF.');
-                return;
-            }
+            e.preventDefault();
+            const cpf = document.getElementById('cpf').value;
+            const email = document.getElementById('email').value;
 
-            // Exibe o painel de resultados removendo a classe 'hidden'
-            const resultDiv = document.getElementById('resultContainer');
-            resultDiv.classList.remove('hidden');
-            
-            // Rola suavemente até o resultado
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
+            if (cpf && email) {
+                // Salva os dados do paciente no localStorage para simular a sessão
+                localStorage.setItem('escalamed_patient', JSON.stringify({ cpf, email }));
+                alert('Conta de paciente criada com sucesso! Localizando sua unidade...');
+                window.location.href = 'index.html'; // ou redireciona para a visão de resultados que preferir
+            }
         });
     </script>
 </body>
