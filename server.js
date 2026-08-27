@@ -70,6 +70,19 @@ app.post('/api/login-doctor', (req, res) => {
     });
 });
 
+// Rota para visualizar todos os usuários cadastrados (Debug / Consulta estilo MySQL)
+app.get('/api/debug-users', (req, res) => {
+    db.all(`SELECT id, cpf, email, category, council, registry, user_type FROM users`, [], (err, rows) => {
+        if (err) {
+            return res.status(500).json({ error: 'Erro ao consultar banco de dados.' });
+        }
+        res.json({
+            total_users: rows.length,
+            users: rows
+        });
+    });
+});
+
 // Iniciar Servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
