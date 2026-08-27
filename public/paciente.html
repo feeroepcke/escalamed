@@ -55,16 +55,20 @@
 
     <script>
         document.getElementById('patientForm').addEventListener('submit', (e) => {
-            e.preventDefault();
+            e.preventDefault(); // Impede o recarregamento padrão da página
             const cpf = document.getElementById('patientCpf').value;
             
-            if (cpf.length < 10) {
-                alert('Por favor, insira um CPF válido.');
+            if (cpf.trim() === '') {
+                alert('Por favor, insira um CPF.');
                 return;
             }
 
-            // Exibe o painel de resultados simulando a busca da unidade vinculada ao cidadão
-            document.getElementById('resultContainer').classList.remove('hidden');
+            // Exibe o painel de resultados removendo a classe 'hidden'
+            const resultDiv = document.getElementById('resultContainer');
+            resultDiv.classList.remove('hidden');
+            
+            // Rola suavemente até o resultado
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
         });
     </script>
 </body>
