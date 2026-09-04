@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EscalaMed - Painel do Médico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-sans">
+    <nav class="bg-blue-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-user-doctor text-2xl"></i>
+                <span class="font-bold text-xl tracking-tight">EscalaMed | Portal Médico</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="userName" class="text-sm font-medium">Dr. Usuário</span>
+                <a href="medico.html" class="bg-blue-700 hover:bg-blue-800 px-3 py-1.5 rounded-lg text-sm transition">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Ações Rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-semibold uppercase">Próximo Plantão</p>
+                    <h3 class="text-lg font-bold text-gray-800 mt-1">Hoje, 19:00 - 07:00</h3>
+                    <p class="text-sm text-gray-600">UTI Geral - Hospital Central</p>
+                </div>
+                <div class="bg-blue-50 p-3 rounded-full text-blue-600">
+                    <i class="fa-regular fa-clock text-xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-semibold uppercase">Ponto Digital</p>
+                    <button class="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition flex items-center space-x-2">
+                        <i class="fa-solid fa-fingerprint"></i>
+                        <span>Registrar Entrada</span>
+                    </button>
+                </div>
+                <div class="bg-emerald-50 p-3 rounded-full text-emerald-600">
+                    <i class="fa-solid fa-check-double text-xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-500 font-semibold uppercase">Solicitar Troca</p>
+                    <button onclick="document.getElementById('modalTroca').classList.remove('hidden')" class="mt-2 bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition flex items-center space-x-2">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Passar Plantão</span>
+                    </button>
+                </div>
+                <div class="bg-amber-50 p-3 rounded-full text-amber-600">
+                    <i class="fa-solid fa-handshake text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção Principal: Minhas Escalas e Mural -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Minhas Escalas -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
+                    <i class="fa-regular fa-calendar-days text-blue-600"></i>
+                    <span>Meus Próximos Plantões</span>
+                </h2>
+                <div class="space-y-3">
+                    <div class="p-4 rounded-lg bg-gray-50 border border-gray-200 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-semibold px-2.5 py-0.5 rounded bg-blue-100 text-blue-800">Confirmado</span>
+                            <p class="font-semibold text-gray-800 mt-1">Amanhã, 07:00 - 19:00</p>
+                            <p class="text-xs text-gray-500">Pronto Socorro - Emergência</p>
+                        </div>
+                        <button class="text-xs text-amber-600 hover:underline">Oferecer Troca</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mural de Trocas Disponíveis -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
+                    <i class="fa-solid fa-users-viewfinder text-blue-600"></i>
+                    <span>Mural de Oportunidades (Trocas)</span>
+                </h2>
+                <div class="space-y-3">
+                    <div class="p-4 rounded-lg bg-gray-50 border border-gray-200 flex justify-between items-center">
+                        <div>
+                            <p class="text-xs font-semibold text-gray-500">Oferecido por: Dr. Carlos</p>
+                            <p class="font-semibold text-gray-800 mt-1">Sábado, 19:00 - 07:00</p>
+                            <p class="text-xs text-gray-500">Pediatria - Bloco B</p>
+                        </div>
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition">
+                            Pegar Plantão
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de Oferta de Troca -->
+    <div id="modalTroca" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Disponibilizar Plantão para Troca</h3>
+            <form class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Selecione o Plantão</label>
+                    <select class="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
+                        <option>Hoje, 19:00 - UTI Geral</option>
+                        <option>Amanhã, 07:00 - Pronto Socorro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Observação / Motivo (Opcional)</label>
+                    <textarea class="w-full border border-gray-300 rounded-lg p-2.5 text-sm" rows="3" placeholder="Ex: Compromisso acadêmico"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="document.getElementById('modalTroca').classList.add('hidden')" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Publicar no Mural</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
