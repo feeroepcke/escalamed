@@ -17,6 +17,11 @@ const pool = new Pool({
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
+// Rota padrão para abrir a página inicial diretamente na URL principal
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Inicializa as tabelas no Banco de Dados
 async function initDb() {
   try {
