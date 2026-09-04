@@ -15,11 +15,13 @@ const pool = new Pool({
 });
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+
+// Servir arquivos estáticos (HTML, CSS, JS) de dentro da pasta public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rota padrão para abrir a página inicial diretamente na URL principal
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Inicializa as tabelas no Banco de Dados
