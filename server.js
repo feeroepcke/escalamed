@@ -52,7 +52,7 @@ app.post('/api/register/doctor', async (req, res) => {
 
     res.status(201).json({ message: 'Médico cadastrado com sucesso!', doctor: result.rows[0] });
   } catch (err) {
-    console.error(err);
+    console.error('Erro no cadastro do médico:', err);
     if (err.code === '23505') {
       return res.status(400).json({ error: 'CRM ou E-mail já cadastrado.' });
     }
@@ -80,7 +80,7 @@ app.post('/api/login/doctor', async (req, res) => {
       user: { id: doctor.id, name: doctor.name, crm: doctor.crm, email: doctor.email }
     });
   } catch (err) {
-    console.error(err);
+    console.error('Erro no login do médico:', err);
     res.status(500).json({ error: 'Erro no servidor ao realizar login.' });
   }
 });
@@ -96,7 +96,7 @@ app.post('/api/register/patient', async (req, res) => {
     );
     res.status(201).json({ message: 'Paciente cadastrado com sucesso!', patient: result.rows[0] });
   } catch (err) {
-    console.error(err);
+    console.error('Erro no cadastro do paciente:', err);
     if (err.code === '23505') {
       return res.status(400).json({ error: 'CPF ou E-mail já cadastrado.' });
     }
@@ -124,7 +124,7 @@ app.post('/api/login/patient', async (req, res) => {
       user: { id: patient.id, name: patient.name, cpf: patient.cpf, email: patient.email }
     });
   } catch (err) {
-    console.error(err);
+    console.error('Erro no login do paciente:', err);
     res.status(500).json({ error: 'Erro no servidor ao realizar login.' });
   }
 });
@@ -139,7 +139,7 @@ app.get('/api/hospitals', async (req, res) => {
     const result = await pool.query('SELECT id, name FROM hospitals ORDER BY name ASC');
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao buscar hospitais:', err);
     res.status(500).json({ error: 'Erro ao buscar hospitais.' });
   }
 });
@@ -185,7 +185,7 @@ app.get('/api/doctor/overview', async (req, res) => {
       openShiftsCount: openShiftsQuery.rows[0]?.open_count || 0
     });
   } catch (err) {
-    console.error(err);
+    console.error('Erro na visão geral do médico:', err);
     res.status(500).json({ error: 'Erro ao carregar dados da Visão Geral.' });
   }
 });
@@ -210,14 +210,65 @@ app.get('/api/doctor/schedule', async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error('Erro ao buscar escala:', err);
     res.status(500).json({ error: 'Erro ao buscar escala de plantões.' });
   }
 });
 
-// Redirecionamento padrão para SPA
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// ==========================================
+// ROTAS SAAS: DASHBOARD DO PACIENTE
+// ==========================================
+
+// 1. Dados da Unidade de Saúde (Horários, Endereço e Especialidades)
+app.get('/api/patient/unit-info', async (req, res) => {
+  const { hospital_id } = req.query;
+  const id = hospital_id || 1;
+
+  try {
+    const unitResult = await pool.query(
+      'SELECT id, name, address, phone, opening_hours FROM hospitals WHERE id = $1',
+      [id]
+    );
+
+    const specsResult = await pool.query(
+      `SELECT DISTINCT s.specialty 
+       FROM shifts s 
+       WHERE s.hospital_id = $1 AND s.specialty IS NOT NULL
+       ORDER BY s.specialty ASC`,
+      [id]
+    );
+
+    res.json({
+      unit: unitResult.rows[0] || null,
+      specialties: specsResult.rows.map(r => r.specialty)
+    });
+  } catch (err) {
+    console.error('Erro ao buscar dados da unidade:', err);
+    res.status(500).json({ error: 'Erro ao carregar dados da unidade.' });
+  }
+});
+
+// 2. Equipe de Plantão Hoje (Médicos/Enfermeiros escalados)
+app.get('/api/patient/on-duty-team', async (req, res) => {
+  const { hospital_id } = req.query;
+  const id = hospital_id || 1;
+
+  try {
+    const teamResult = await pool.query(
+      `SELECT d.name as doctor_name, d.crm, s.sector, s.start_time, s.end_time, s.specialty
+       FROM shifts s
+       JOIN doctors d ON s.doctor_id = d.id
+       WHERE s.hospital_id = $1 
+         AND s.shift_date = CURRENT_DATE
+       ORDER BY s.start_time ASC`,
+      [id]
+    );
+
+    res.json(teamResult.rows);
+  } catch (err) {
+    console.error('Erro ao buscar equipe de plantão:', err);
+    res.status(500).json({ error: 'Erro ao carregar equipe de plantão.' });
+  }
 });
 
 // Inicialização do Servidor

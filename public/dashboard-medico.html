@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EscalaMed - Portal Médico</title>
+  <title>EscalaMed - Portal do Médico</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -37,9 +37,9 @@
     </div>
   </header>
 
-  <!-- Corpo Principal (Sidebar + Conteúdo) -->
+  <!-- Layout Principal -->
   <div class="flex flex-1">
-    <!-- Sidebar -->
+    <!-- Sidebar / Menu Lateral -->
     <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex">
       <div class="space-y-6">
         <div>
@@ -78,23 +78,22 @@
       </div>
     </aside>
 
-    <!-- Conteúdo Principal Dinâmico -->
+    <!-- Conteúdo Central Dinâmico -->
     <main class="flex-1 p-8 overflow-y-auto">
       <div class="max-w-7xl mx-auto">
 
-        <!-- SEÇÃO: VISÃO GERAL (HOME DO MÉDICO) -->
+        <!-- VISÃO GERAL -->
         <section id="sec-visao-geral" class="space-y-6">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Visão Geral do Médico</h1>
-            <p class="text-sm text-gray-500">Resumo dos seus plantões e atividades do setor.</p>
+            <p class="text-sm text-gray-500">Resumo dos seus plantões e atividades na unidade.</p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Card Próximo Plantão -->
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase">Próximo Plantão</p>
-                <h3 id="cardProximoPlantao" class="text-lg font-bold text-gray-800 mt-1">Nenhum agendado</h3>
+                <h3 id="cardProximoPlantao" class="text-lg font-bold text-gray-800 mt-1">Carregando...</h3>
                 <p id="cardProximoSetor" class="text-xs text-gray-500">---</p>
               </div>
               <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
@@ -102,7 +101,6 @@
               </div>
             </div>
 
-            <!-- Card Horas no Mês -->
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase">Horas no Mês</p>
@@ -114,12 +112,11 @@
               </div>
             </div>
 
-            <!-- Card Oportunidades no Setor -->
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase">Plantões Vagos</p>
                 <h3 id="cardPlantoesVagos" class="text-2xl font-extrabold text-amber-600 mt-1">0</h3>
-                <p class="text-xs text-gray-500">Disponíveis para pegar</p>
+                <p class="text-xs text-gray-500">Disponíveis no setor</p>
               </div>
               <div class="bg-amber-50 text-amber-600 p-3 rounded-xl">
                 <i class="fa-regular fa-lightbulb text-2xl"></i>
@@ -128,43 +125,45 @@
           </div>
         </section>
 
-        <!-- SEÇÃO: MINHA ESCALA -->
+        <!-- MINHA ESCALA -->
         <section id="sec-minha-escala" class="space-y-6 hidden">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h1 class="text-2xl font-bold text-gray-900">Escala do setor — Clínica Médica</h1>
-              <p class="text-sm text-gray-500">Escala atual do hospital selecionado</p>
-            </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Escala do setor — Clínica Médica</h1>
+            <p class="text-sm text-gray-500">Grade de plantões para o hospital selecionado</p>
           </div>
 
           <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
             <div id="gridEscala" class="grid grid-cols-1 md:grid-cols-7 gap-3">
-              <!-- Renderizado via JavaScript -->
+              <!-- Preenchido via JavaScript -->
             </div>
           </div>
         </section>
 
-        <!-- SEÇÃO: OUTRAS ABAS (EM DESENVOLVIMENTO) -->
+        <!-- SEÇÃO GENÉRICA (DEMAIS MÓDULOS) -->
         <section id="sec-outros" class="bg-white p-12 rounded-2xl border border-gray-200 text-center hidden">
           <i class="fa-solid fa-code text-4xl text-emerald-600 mb-3"></i>
           <h2 id="tituloOutros" class="text-xl font-bold text-gray-800">Módulo em Integração</h2>
-          <p class="text-sm text-gray-500 mt-1">Essa funcionalidade está sendo conectada ao banco de dados.</p>
+          <p class="text-sm text-gray-500 mt-1">Essa funcionalidade está conectada e pronta para receber novos registros do banco.</p>
         </section>
 
       </div>
     </main>
   </div>
 
-  <!-- Script da SPA -->
+  <!-- Lógica SPA e Requisições Backend -->
   <script>
-    let doctorData = JSON.parse(localStorage.getItem('doctorUser') || '{}');
+    let doctorData = {};
+    try {
+      doctorData = JSON.parse(localStorage.getItem('doctorUser') || '{}');
+    } catch (e) {
+      doctorData = {};
+    }
 
-    // Validação de Sessão
-    if (!doctorData.id) {
+    // Redireciona se não estiver logado
+    if (!doctorData || !doctorData.id) {
       window.location.href = '/medico.html';
     }
 
-    // Inicialização da Tela
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('userName').innerText = doctorData.name || 'Médico';
       document.getElementById('userCrm').innerText = `CRM: ${doctorData.crm || 'N/A'}`;
@@ -177,14 +176,20 @@
       carregarHospitais();
     });
 
-    // Buscar Hospitais
     async function carregarHospitais() {
       try {
         const res = await fetch('/api/hospitals');
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+
         const hospitals = await res.json();
-        
         const select = document.getElementById('hospitalSelect');
         select.innerHTML = '';
+
+        if (!Array.isArray(hospitals) || hospitals.length === 0) {
+          select.innerHTML = '<option value="">Nenhum hospital cadastrado</option>';
+          document.getElementById('hospitalBadge').innerText = 'Sem hospital';
+          return;
+        }
 
         hospitals.forEach(h => {
           const opt = document.createElement('option');
@@ -193,17 +198,17 @@
           select.appendChild(opt);
         });
 
-        if (hospitals.length > 0) {
-          alterarHospital();
-        }
+        alterarHospital();
       } catch (err) {
         console.error('Erro ao buscar hospitais:', err);
+        document.getElementById('hospitalBadge').innerText = 'Servidor reconectando...';
       }
     }
 
-    // Alterar Hospital
     function alterarHospital() {
       const select = document.getElementById('hospitalSelect');
+      if (!select.value) return;
+
       const nomeHospital = select.options[select.selectedIndex].text;
       document.getElementById('hospitalBadge').innerText = nomeHospital;
 
@@ -211,13 +216,14 @@
       carregarEscala();
     }
 
-    // Carregar dados da Visão Geral
     async function carregarVisaoGeral() {
       const hospitalId = document.getElementById('hospitalSelect').value;
-      if (!hospitalId) return;
+      if (!hospitalId || !doctorData.id) return;
 
       try {
         const res = await fetch(`/api/doctor/overview?doctor_id=${doctorData.id}&hospital_id=${hospitalId}`);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+
         const data = await res.json();
 
         if (data.nextShift) {
@@ -229,24 +235,25 @@
           document.getElementById('cardProximoSetor').innerText = 'Sem plantões futuros';
         }
 
-        document.getElementById('cardHorasMes').innerText = `${data.monthlyHours}h`;
-        document.getElementById('cardPlantoesVagos').innerText = data.openShiftsCount;
+        document.getElementById('cardHorasMes').innerText = `${data.monthlyHours || 0}h`;
+        document.getElementById('cardPlantoesVagos').innerText = data.openShiftsCount || 0;
       } catch (err) {
         console.error('Erro ao carregar visão geral:', err);
       }
     }
 
-    // Carregar Escala Semanal
     async function carregarEscala() {
       const hospitalId = document.getElementById('hospitalSelect').value;
       if (!hospitalId) return;
 
       try {
         const res = await fetch(`/api/doctor/schedule?hospital_id=${hospitalId}`);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+
         const shifts = await res.json();
         const grid = document.getElementById('gridEscala');
 
-        if (shifts.length === 0) {
+        if (!Array.isArray(shifts) || shifts.length === 0) {
           grid.innerHTML = '<p class="text-sm text-gray-500 col-span-7 text-center py-6">Nenhum plantão cadastrado para este hospital.</p>';
           return;
         }
@@ -266,11 +273,9 @@
       }
     }
 
-    // Navegação entre Abas (SPA)
     function navegarPara(aba) {
       document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
 
-      // Ajustar botões do menu
       ['visao-geral', 'minha-escala', 'trocas', 'faltas', 'oportunidades', 'preferencias'].forEach(a => {
         const btn = document.getElementById(`btn-${a}`);
         if (btn) {
@@ -293,7 +298,6 @@
       }
     }
 
-    // Logout
     function logout() {
       localStorage.removeItem('doctorUser');
       window.location.href = '/medico.html';
