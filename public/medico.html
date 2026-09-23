@@ -149,21 +149,22 @@
             const password = document.getElementById('regPassword').value;
 
             try {
-                const response = await fetch('/api/register-doctor', {
+                // Rota exata do seu server.js (/api/register/doctor)
+                const response = await fetch('/api/register/doctor', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, crm, email, password })
                 });
 
                 const data = await response.json();
-                if (data.success || response.ok) {
-                    alert('Cadastro realizado com sucesso! Faça login para continuar.');
+                if (response.ok) {
+                    alert('Médico cadastrado com sucesso! Faça login para continuar.');
                     switchTab('login');
                 } else {
-                    alert(data.message || data.error || 'Erro ao cadastrar.');
+                    alert(data.error || data.message || 'Erro ao cadastrar.');
                 }
             } catch (err) {
-                alert('O servidor está acordando. Aguarde alguns segundos e tente novamente.');
+                alert('Erro de conexão com o servidor.');
             } finally {
                 btn.innerText = 'Validar dados e criar conta';
                 btn.disabled = false;
@@ -174,14 +175,15 @@
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnLogin');
-            btn.innerText = 'Conectando ao servidor...';
+            btn.innerText = 'Entrando...';
             btn.disabled = true;
 
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
             try {
-                const response = await fetch('/api/login-doctor', {
+                // Rota exata do seu server.js (/api/login/doctor)
+                const response = await fetch('/api/login/doctor', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
@@ -189,18 +191,18 @@
 
                 const data = await response.json();
                 
-                if (data.success || response.ok) {
-                    // Armazena com a mesma chave esperada pelo dashboard-medico.html
-                    const userObj = data.user || { name: 'Dr(a). Médico', crm: '12345' };
-                    localStorage.setItem('doctorUser', JSON.stringify(userObj));
+                if (response.ok) {
+                    // Armazena a sessão
+                    localStorage.setItem('doctorUser', JSON.stringify(data.user));
+                    localStorage.setItem('user', JSON.stringify(data.user));
                     
-                    // Redireciona com segurança para a página de dashboard existente
+                    // Redireciona para o dashboard
                     window.location.href = '/dashboard-medico.html';
                 } else {
-                    alert(data.message || data.error || 'E-mail ou senha incorretos.');
+                    alert(data.error || data.message || 'E-mail ou senha incorretos.');
                 }
             } catch (err) {
-                alert('O servidor do Render está inicializando. Por favor, aguarde 15 segundos e clique em Entrar novamente.');
+                alert('Erro de conexão com o servidor.');
             } finally {
                 btn.innerText = 'Entrar no Painel';
                 btn.disabled = false;

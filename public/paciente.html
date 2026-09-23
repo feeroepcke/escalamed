@@ -41,7 +41,7 @@
             <div class="text-xs text-gray-400">Protegido por criptografia e LGPD.</div>
         </div>
 
-        <!-- Lado Direito (Abas de Alternância: Entrar / Cadastrar) -->
+        <!-- Lado Direito (Abas: Entrar / Cadastrar) -->
         <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
             <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm w-full max-w-lg">
                 <!-- Seletor de Abas -->
@@ -64,10 +64,10 @@
                         <input type="password" id="loginPassword" placeholder="Sua senha" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
                     </div>
 
-                    <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-4">Entrar no Sistema</button>
+                    <button type="submit" id="btnLogin" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-4">Entrar no Sistema</button>
                 </form>
 
-                <!-- Formulário de Cadastro (Oculto por padrão) -->
+                <!-- Formulário de Cadastro -->
                 <form id="formRegister" class="space-y-4 hidden">
                     <span class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-medium">Cadastro do Paciente</span>
                     <h2 class="text-xl font-bold text-gray-900 mt-2 mb-1">Crie sua conta de paciente</h2>
@@ -90,14 +90,13 @@
                         <input type="password" id="regPassword" placeholder="Mínimo de 8 caracteres" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
                     </div>
 
-                    <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-4">Criar conta e localizar unidade</button>
+                    <button type="submit" id="btnRegister" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-4">Criar conta e localizar unidade</button>
                 </form>
             </div>
         </div>
     </div>
 
     <script>
-        // Alternar entre abas de Login e Cadastro
         function switchTab(tab) {
             const formLogin = document.getElementById('formLogin');
             const formRegister = document.getElementById('formRegister');
@@ -117,55 +116,76 @@
             }
         }
 
-        // Cadastro de Paciente
+        // Cadastro do Paciente
         document.getElementById('formRegister').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('btnRegister');
+            btn.innerText = 'Cadastrando...';
+            btn.disabled = true;
+
             const name = document.getElementById('regName').value;
             const cpf = document.getElementById('regCpf').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
 
             try {
-                const response = await fetch('/api/register-patient', {
+                // Rota ajustada para /api/register/patient com barras
+                const response = await fetch('/api/register/patient', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, cpf, email, password })
                 });
 
                 const data = await response.json();
-                if (data.success) {
+                
+                if (response.ok) {
                     alert('Cadastro realizado com sucesso! Faça login para continuar.');
                     switchTab('login');
                 } else {
-                    alert(data.message || 'Erro ao cadastrar.');
+                    alert(data.error || data.message || 'Erro ao cadastrar paciente.');
                 }
             } catch (err) {
                 alert('Erro de conexão com o servidor.');
+            } finally {
+                btn.innerText = 'Criar conta e localizar unidade';
+                btn.disabled = false;
             }
         });
 
-        // Login de Paciente
+        // Login do Paciente
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('btnLogin');
+            btn.innerText = 'Entrando...';
+            btn.disabled = true;
+
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
             try {
-                const response = await fetch('/api/login-patient', {
+                // Rota ajustada para /api/login/patient com barras
+                const response = await fetch('/api/login/patient', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
 
                 const data = await response.json();
-                if (data.success) {
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    window.location.href = data.redirect;
+
+                if (response.ok) {
+                    // Salva a sessão do paciente
+                    localStorage.setItem('patientUser', JSON.stringify(data.user));
+                    
+                    // Redireciona para o dashboard do paciente existente na sua pasta public
+                    window.location.href = '/dashboard-paciente.html';
                 } else {
-                    alert(data.message || 'E-mail ou senha incorretos.');
+                    alert(data.error || data.message || 'E-mail ou senha incorretos.');
                 }
             } catch (err) {
                 alert('Erro de conexão com o servidor.');
+            } finally {
+                btn.innerText = 'Entrar no Sistema';
+                btn.disabled = false;
             }
         });
     </script>
