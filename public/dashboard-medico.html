@@ -1,131 +1,303 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EscalaMed - Painel do Médico</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EscalaMed - Portal Médico</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 font-sans">
-    <nav class="bg-blue-600 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-user-doctor text-2xl"></i>
-                <span class="font-bold text-xl tracking-tight">EscalaMed | Portal Médico</span>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span id="userName" class="text-sm font-medium">Dr. Usuário</span>
-                <a href="medico.html" class="bg-blue-700 hover:bg-blue-800 px-3 py-1.5 rounded-lg text-sm transition">Sair</a>
-            </div>
-        </div>
-    </nav>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Ações Rápidas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 font-semibold uppercase">Próximo Plantão</p>
-                    <h3 class="text-lg font-bold text-gray-800 mt-1">Hoje, 19:00 - 07:00</h3>
-                    <p class="text-sm text-gray-600">UTI Geral - Hospital Central</p>
-                </div>
-                <div class="bg-blue-50 p-3 rounded-full text-blue-600">
-                    <i class="fa-regular fa-clock text-xl"></i>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 font-semibold uppercase">Ponto Digital</p>
-                    <button class="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition flex items-center space-x-2">
-                        <i class="fa-solid fa-fingerprint"></i>
-                        <span>Registrar Entrada</span>
-                    </button>
-                </div>
-                <div class="bg-emerald-50 p-3 rounded-full text-emerald-600">
-                    <i class="fa-solid fa-check-double text-xl"></i>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 font-semibold uppercase">Solicitar Troca</p>
-                    <button onclick="document.getElementById('modalTroca').classList.remove('hidden')" class="mt-2 bg-amber-500 hover:bg-amber-600 text-white font-medium px-4 py-2 rounded-lg text-sm transition flex items-center space-x-2">
-                        <i class="fa-solid fa-arrows-rotate"></i>
-                        <span>Passar Plantão</span>
-                    </button>
-                </div>
-                <div class="bg-amber-50 p-3 rounded-full text-amber-600">
-                    <i class="fa-solid fa-handshake text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Seção Principal: Minhas Escalas e Mural -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Minhas Escalas -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                    <i class="fa-regular fa-calendar-days text-blue-600"></i>
-                    <span>Meus Próximos Plantões</span>
-                </h2>
-                <div class="space-y-3">
-                    <div class="p-4 rounded-lg bg-gray-50 border border-gray-200 flex justify-between items-center">
-                        <div>
-                            <span class="text-xs font-semibold px-2.5 py-0.5 rounded bg-blue-100 text-blue-800">Confirmado</span>
-                            <p class="font-semibold text-gray-800 mt-1">Amanhã, 07:00 - 19:00</p>
-                            <p class="text-xs text-gray-500">Pronto Socorro - Emergência</p>
-                        </div>
-                        <button class="text-xs text-amber-600 hover:underline">Oferecer Troca</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mural de Trocas Disponíveis -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                    <i class="fa-solid fa-users-viewfinder text-blue-600"></i>
-                    <span>Mural de Oportunidades (Trocas)</span>
-                </h2>
-                <div class="space-y-3">
-                    <div class="p-4 rounded-lg bg-gray-50 border border-gray-200 flex justify-between items-center">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-500">Oferecido por: Dr. Carlos</p>
-                            <p class="font-semibold text-gray-800 mt-1">Sábado, 19:00 - 07:00</p>
-                            <p class="text-xs text-gray-500">Pediatria - Bloco B</p>
-                        </div>
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition">
-                            Pegar Plantão
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modal de Oferta de Troca -->
-    <div id="modalTroca" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-md w-full p-6">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">Disponibilizar Plantão para Troca</h3>
-            <form class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Selecione o Plantão</label>
-                    <select class="w-full border border-gray-300 rounded-lg p-2.5 text-sm">
-                        <option>Hoje, 19:00 - UTI Geral</option>
-                        <option>Amanhã, 07:00 - Pronto Socorro</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Observação / Motivo (Opcional)</label>
-                    <textarea class="w-full border border-gray-300 rounded-lg p-2.5 text-sm" rows="3" placeholder="Ex: Compromisso acadêmico"></textarea>
-                </div>
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" onclick="document.getElementById('modalTroca').classList.add('hidden')" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Publicar no Mural</button>
-                </div>
-            </form>
-        </div>
+  <!-- Topbar -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center sticky top-0 z-10">
+    <div class="flex items-center space-x-2">
+      <div class="bg-emerald-600 text-white p-2 rounded-lg flex items-center justify-center">
+        <i class="fa-solid fa-clock text-lg"></i>
+      </div>
+      <span class="font-bold text-xl tracking-tight text-gray-900">EscalaMed</span>
     </div>
+
+    <div class="flex items-center space-x-4">
+      <span id="hospitalBadge" class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200">
+        Carregando...
+      </span>
+      <div class="flex items-center space-x-2">
+        <div id="userInitials" class="w-8 h-8 rounded-full bg-emerald-200 text-emerald-800 font-bold flex items-center justify-center text-xs">
+          DR
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-bold text-gray-800 leading-none" id="userName">Dr. Usuário</p>
+          <p class="text-xs text-gray-500 mt-0.5" id="userCrm">CRM: ---</p>
+        </div>
+      </div>
+      <button onclick="logout()" class="text-gray-400 hover:text-red-500 text-sm ml-2 transition" title="Sair">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Corpo Principal (Sidebar + Conteúdo) -->
+  <div class="flex flex-1">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex">
+      <div class="space-y-6">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Instituição</label>
+          <select id="hospitalSelect" onchange="alterarHospital()" class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg p-2.5 font-medium focus:ring-emerald-500 focus:border-emerald-500">
+            <option value="">Carregando hospitais...</option>
+          </select>
+        </div>
+
+        <nav class="space-y-1">
+          <button id="btn-visao-geral" onclick="navegarPara('visao-geral')" class="w-full flex items-center space-x-3 text-emerald-700 bg-emerald-50 font-semibold px-3 py-2.5 rounded-lg text-sm transition">
+            <i class="fa-regular fa-chart-bar w-5"></i>
+            <span>Visão geral</span>
+          </button>
+          <button id="btn-minha-escala" onclick="navegarPara('minha-escala')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-calendar-days w-5"></i>
+            <span>Minha escala</span>
+          </button>
+          <button id="btn-trocas" onclick="navegarPara('trocas')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-solid fa-arrows-rotate w-5"></i>
+            <span>Trocas de plantão</span>
+          </button>
+          <button id="btn-faltas" onclick="navegarPara('faltas')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-folder-open w-5"></i>
+            <span>Faltas e documentos</span>
+          </button>
+          <button id="btn-oportunidades" onclick="navegarPara('oportunidades')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-lightbulb w-5"></i>
+            <span>Oportunidades</span>
+          </button>
+          <button id="btn-preferencias" onclick="navegarPara('preferencias')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-gear w-5"></i>
+            <span>Preferências</span>
+          </button>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Conteúdo Principal Dinâmico -->
+    <main class="flex-1 p-8 overflow-y-auto">
+      <div class="max-w-7xl mx-auto">
+
+        <!-- SEÇÃO: VISÃO GERAL (HOME DO MÉDICO) -->
+        <section id="sec-visao-geral" class="space-y-6">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Visão Geral do Médico</h1>
+            <p class="text-sm text-gray-500">Resumo dos seus plantões e atividades do setor.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card Próximo Plantão -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Próximo Plantão</p>
+                <h3 id="cardProximoPlantao" class="text-lg font-bold text-gray-800 mt-1">Nenhum agendado</h3>
+                <p id="cardProximoSetor" class="text-xs text-gray-500">---</p>
+              </div>
+              <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                <i class="fa-regular fa-clock text-2xl"></i>
+              </div>
+            </div>
+
+            <!-- Card Horas no Mês -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Horas no Mês</p>
+                <h3 id="cardHorasMes" class="text-2xl font-extrabold text-emerald-700 mt-1">0h</h3>
+                <p class="text-xs text-gray-500">Horas confirmadas</p>
+              </div>
+              <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                <i class="fa-solid fa-business-time text-2xl"></i>
+              </div>
+            </div>
+
+            <!-- Card Oportunidades no Setor -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Plantões Vagos</p>
+                <h3 id="cardPlantoesVagos" class="text-2xl font-extrabold text-amber-600 mt-1">0</h3>
+                <p class="text-xs text-gray-500">Disponíveis para pegar</p>
+              </div>
+              <div class="bg-amber-50 text-amber-600 p-3 rounded-xl">
+                <i class="fa-regular fa-lightbulb text-2xl"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEÇÃO: MINHA ESCALA -->
+        <section id="sec-minha-escala" class="space-y-6 hidden">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900">Escala do setor — Clínica Médica</h1>
+              <p class="text-sm text-gray-500">Escala atual do hospital selecionado</p>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div id="gridEscala" class="grid grid-cols-1 md:grid-cols-7 gap-3">
+              <!-- Renderizado via JavaScript -->
+            </div>
+          </div>
+        </section>
+
+        <!-- SEÇÃO: OUTRAS ABAS (EM DESENVOLVIMENTO) -->
+        <section id="sec-outros" class="bg-white p-12 rounded-2xl border border-gray-200 text-center hidden">
+          <i class="fa-solid fa-code text-4xl text-emerald-600 mb-3"></i>
+          <h2 id="tituloOutros" class="text-xl font-bold text-gray-800">Módulo em Integração</h2>
+          <p class="text-sm text-gray-500 mt-1">Essa funcionalidade está sendo conectada ao banco de dados.</p>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Script da SPA -->
+  <script>
+    let doctorData = JSON.parse(localStorage.getItem('doctorUser') || '{}');
+
+    // Validação de Sessão
+    if (!doctorData.id) {
+      window.location.href = '/medico.html';
+    }
+
+    // Inicialização da Tela
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('userName').innerText = doctorData.name || 'Médico';
+      document.getElementById('userCrm').innerText = `CRM: ${doctorData.crm || 'N/A'}`;
+      
+      const initials = doctorData.name 
+        ? doctorData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+        : 'DR';
+      document.getElementById('userInitials').innerText = initials;
+
+      carregarHospitais();
+    });
+
+    // Buscar Hospitais
+    async function carregarHospitais() {
+      try {
+        const res = await fetch('/api/hospitals');
+        const hospitals = await res.json();
+        
+        const select = document.getElementById('hospitalSelect');
+        select.innerHTML = '';
+
+        hospitals.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.id;
+          opt.innerText = h.name;
+          select.appendChild(opt);
+        });
+
+        if (hospitals.length > 0) {
+          alterarHospital();
+        }
+      } catch (err) {
+        console.error('Erro ao buscar hospitais:', err);
+      }
+    }
+
+    // Alterar Hospital
+    function alterarHospital() {
+      const select = document.getElementById('hospitalSelect');
+      const nomeHospital = select.options[select.selectedIndex].text;
+      document.getElementById('hospitalBadge').innerText = nomeHospital;
+
+      carregarVisaoGeral();
+      carregarEscala();
+    }
+
+    // Carregar dados da Visão Geral
+    async function carregarVisaoGeral() {
+      const hospitalId = document.getElementById('hospitalSelect').value;
+      if (!hospitalId) return;
+
+      try {
+        const res = await fetch(`/api/doctor/overview?doctor_id=${doctorData.id}&hospital_id=${hospitalId}`);
+        const data = await res.json();
+
+        if (data.nextShift) {
+          const dataFmt = new Date(data.nextShift.shift_date).toLocaleDateString('pt-BR');
+          document.getElementById('cardProximoPlantao').innerText = `${dataFmt}, ${data.nextShift.start_time.slice(0,5)}h`;
+          document.getElementById('cardProximoSetor').innerText = data.nextShift.sector;
+        } else {
+          document.getElementById('cardProximoPlantao').innerText = 'Nenhum agendado';
+          document.getElementById('cardProximoSetor').innerText = 'Sem plantões futuros';
+        }
+
+        document.getElementById('cardHorasMes').innerText = `${data.monthlyHours}h`;
+        document.getElementById('cardPlantoesVagos').innerText = data.openShiftsCount;
+      } catch (err) {
+        console.error('Erro ao carregar visão geral:', err);
+      }
+    }
+
+    // Carregar Escala Semanal
+    async function carregarEscala() {
+      const hospitalId = document.getElementById('hospitalSelect').value;
+      if (!hospitalId) return;
+
+      try {
+        const res = await fetch(`/api/doctor/schedule?hospital_id=${hospitalId}`);
+        const shifts = await res.json();
+        const grid = document.getElementById('gridEscala');
+
+        if (shifts.length === 0) {
+          grid.innerHTML = '<p class="text-sm text-gray-500 col-span-7 text-center py-6">Nenhum plantão cadastrado para este hospital.</p>';
+          return;
+        }
+
+        grid.innerHTML = shifts.map(s => `
+          <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2">
+            <p class="text-xs font-semibold text-gray-500">${new Date(s.shift_date).toLocaleDateString('pt-BR')}</p>
+            <div class="${s.doctor_id === doctorData.id ? 'bg-emerald-100 border-emerald-300' : 'bg-white border-gray-200'} p-2.5 rounded-lg border text-xs">
+              <p class="text-gray-500 font-semibold mb-0.5">${s.start_time.slice(0,5)} - ${s.end_time.slice(0,5)}</p>
+              <p class="font-bold text-gray-800">${s.doctor_name || 'Plantão Aberto'}</p>
+              ${s.doctor_id === doctorData.id ? '<span class="inline-block mt-1 bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded">Seu Plantão</span>' : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao carregar escala:', err);
+      }
+    }
+
+    // Navegação entre Abas (SPA)
+    function navegarPara(aba) {
+      document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
+
+      // Ajustar botões do menu
+      ['visao-geral', 'minha-escala', 'trocas', 'faltas', 'oportunidades', 'preferencias'].forEach(a => {
+        const btn = document.getElementById(`btn-${a}`);
+        if (btn) {
+          btn.className = 'w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition';
+        }
+      });
+
+      const btnAtivo = document.getElementById(`btn-${aba}`);
+      if (btnAtivo) {
+        btnAtivo.className = 'w-full flex items-center space-x-3 text-emerald-700 bg-emerald-50 font-semibold px-3 py-2.5 rounded-lg text-sm transition';
+      }
+
+      if (aba === 'visao-geral') {
+        document.getElementById('sec-visao-geral').classList.remove('hidden');
+      } else if (aba === 'minha-escala') {
+        document.getElementById('sec-minha-escala').classList.remove('hidden');
+      } else {
+        document.getElementById('sec-outros').classList.remove('hidden');
+        document.getElementById('tituloOutros').innerText = `Módulo: ${aba.toUpperCase()}`;
+      }
+    }
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('doctorUser');
+      window.location.href = '/medico.html';
+    }
+  </script>
 </body>
 </html>

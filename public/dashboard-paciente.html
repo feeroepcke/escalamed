@@ -1,70 +1,128 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EscalaMed - Acompanhamento do Paciente</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EscalaMed - Portal do Paciente</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 font-sans">
-    <nav class="bg-teal-600 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <i class="fa-solid fa-hospital-user text-2xl"></i>
-                <span class="font-bold text-xl tracking-tight">EscalaMed | Portal do Paciente</span>
-            </div>
-            <a href="paciente.html" class="bg-teal-700 hover:bg-teal-800 px-3 py-1.5 rounded-lg text-sm transition">Sair</a>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+  <!-- Topbar -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center sticky top-0 z-10">
+    <div class="flex items-center space-x-2">
+      <div class="bg-emerald-600 text-white p-2 rounded-lg flex items-center justify-center">
+        <i class="fa-solid fa-clock text-lg"></i>
+      </div>
+      <span class="font-bold text-xl tracking-tight text-gray-900">EscalaMed</span>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200">
+        Hospital Santo Antônio
+      </span>
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-full bg-emerald-200 text-emerald-800 font-bold flex items-center justify-center text-xs">
+          PA
         </div>
-    </nav>
+        <div class="text-right">
+          <p class="text-sm font-bold text-gray-800 leading-none" id="userName">Área do Paciente</p>
+          <p class="text-xs text-gray-500 mt-0.5">Pronto Atendimento</p>
+        </div>
+      </div>
+      <a href="paciente.html" class="text-gray-400 hover:text-red-500 text-sm ml-2 transition" title="Sair">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+    </div>
+  </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8">
-        <!-- Card da Senha / Fila -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center mb-8">
-            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-teal-100 text-teal-800">Atendimento em Andamento</span>
-            <h1 class="text-5xl font-extrabold text-gray-800 mt-4 tracking-tight">A-042</h1>
-            <p class="text-gray-500 text-sm mt-1">Sua Senha Atual</p>
-
-            <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mt-6 pt-6 border-t border-gray-100">
-                <div>
-                    <p class="text-2xl font-bold text-teal-600">3</p>
-                    <p class="text-xs text-gray-500">Pessoas na sua frente</p>
-                </div>
-                <div>
-                    <p class="text-2xl font-bold text-teal-600">~15 min</p>
-                    <p class="text-xs text-gray-500">Tempo estimado</p>
-                </div>
-            </div>
+  <!-- Corpo Principal -->
+  <div class="flex flex-1">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex">
+      <div class="space-y-6">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Unidade</label>
+          <select class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg p-2.5 font-medium">
+            <option>Hospital Santo Antônio</option>
+          </select>
         </div>
 
-        <!-- Médicos de Plantão na Unidade -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                <i class="fa-solid fa-user-nurse text-teal-600"></i>
-                <span>Equipe Médica de Plantão Hoje</span>
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 flex items-center space-x-4">
-                    <div class="bg-teal-100 p-3 rounded-full text-teal-700">
-                        <i class="fa-solid fa-stethoscope"></i>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800">Dr. Roberto Silva</p>
-                        <p class="text-xs text-gray-500">Clínica Geral • CRM 123456</p>
-                    </div>
-                </div>
+        <nav class="space-y-1">
+          <a href="#" class="flex items-center space-x-3 text-emerald-700 bg-emerald-50 font-semibold px-3 py-2.5 rounded-lg text-sm transition">
+            <i class="fa-solid fa-user-nurse w-5"></i>
+            <span>Equipe de Plantão</span>
+          </a>
+          <a href="#" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-clock w-5"></i>
+            <span>Horários de Atendimento</span>
+          </a>
+          <a href="#" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-hospital w-5"></i>
+            <span>Especialidades</span>
+          </a>
+        </nav>
+      </div>
+    </aside>
 
-                <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 flex items-center space-x-4">
-                    <div class="bg-teal-100 p-3 rounded-full text-teal-700">
-                        <i class="fa-solid fa-baby"></i>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800">Dra. Mariana Costa</p>
-                        <p class="text-xs text-gray-500">Pediatria • CRM 654321</p>
-                    </div>
-                </div>
-            </div>
+    <!-- Conteúdo do Paciente -->
+    <main class="flex-1 p-8 overflow-y-auto">
+      <div class="max-w-5xl mx-auto space-y-6">
+
+        <!-- Banner de Boas-Vindas e Status do Setor -->
+        <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <span class="text-xs font-semibold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200">
+              Unidade Aberta • 24 Horas
+            </span>
+            <h1 class="text-2xl font-bold text-gray-900 mt-2">Acompanhamento do Setor</h1>
+            <p class="text-sm text-gray-500">Confira a equipe médica em atendimento hoje no Hospital Santo Antônio.</p>
+          </div>
+          <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-center min-w-[200px]">
+            <p class="text-xs font-semibold text-emerald-800 uppercase">Tempo de Espera Média</p>
+            <p class="text-2xl font-extrabold text-emerald-700 mt-1">~15 min</p>
+            <p class="text-xs text-emerald-600 mt-0.5">Clínica Geral</p>
+          </div>
         </div>
+
+        <!-- Equipe Médica em Atendimento -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center space-x-2">
+            <i class="fa-solid fa-stethoscope text-emerald-600"></i>
+            <span>Médicos de Plantão Hoje</span>
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-200 flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-lg">
+                <i class="fa-solid fa-user-doctor"></i>
+              </div>
+              <div>
+                <p class="font-bold text-gray-900">Dr. Roberto Silva</p>
+                <p class="text-xs text-gray-500">Clínica Geral • CRM-SC 123456</p>
+                <span class="inline-block mt-2 text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Em atendimento (07h-19h)</span>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-200 flex items-center space-x-4">
+              <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-lg">
+                <i class="fa-solid fa-user-doctor"></i>
+              </div>
+              <div>
+                <p class="font-bold text-gray-900">Dra. Mariana Costa</p>
+                <p class="text-xs text-gray-500">Pediatria • CRM-SC 654321</p>
+                <span class="inline-block mt-2 text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">Em atendimento (07h-19h)</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
     </main>
+  </div>
+
 </body>
 </html>
