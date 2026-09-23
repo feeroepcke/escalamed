@@ -56,8 +56,8 @@
                     <p class="text-xs text-gray-500 mb-4">Informe seus dados para consultar sua unidade e fila.</p>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">E-mail ou CPF</label>
-                        <input type="text" id="loginId" placeholder="seu@email.com ou CPF" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
+                        <input type="email" id="loginEmail" placeholder="seu@email.com" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
@@ -69,21 +69,25 @@
 
                 <!-- Formulário de Cadastro (Oculto por padrão) -->
                 <form id="formRegister" class="space-y-4 hidden">
-                    <span class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-medium">Etapa 1 de 2</span>
+                    <span class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md font-medium">Cadastro do Paciente</span>
                     <h2 class="text-xl font-bold text-gray-900 mt-2 mb-1">Crie sua conta de paciente</h2>
                     <p class="text-xs text-gray-500 mb-4">Usaremos seu CPF para localizar sua unidade de referência.</p>
                     
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
+                        <input type="text" id="regName" placeholder="Seu nome completo" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">CPF</label>
-                        <input type="text" id="regCpf" placeholder="000.000.000-00" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500">
+                        <input type="text" id="regCpf" placeholder="000.000.000-00" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-                        <input type="email" id="regEmail" placeholder="voce@exemplo.com" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500">
+                        <input type="email" id="regEmail" placeholder="voce@exemplo.com" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-                        <input type="password" id="regPassword" placeholder="Mínimo de 8 caracteres" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500">
+                        <input type="password" id="regPassword" placeholder="Mínimo de 8 caracteres" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
                     </div>
 
                     <button type="submit" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-4">Criar conta e localizar unidade</button>
@@ -93,51 +97,30 @@
     </div>
 
     <script>
+        // Alternar entre abas de Login e Cadastro
         function switchTab(tab) {
-            const btnLogin = document.getElementById('tabLogin');
-            const btnRegister = document.getElementById('tabRegister');
-            const boxLogin = document.getElementById('formLogin');
-            const boxRegister = document.getElementById('formRegister');
+            const formLogin = document.getElementById('formLogin');
+            const formRegister = document.getElementById('formRegister');
+            const tabLogin = document.getElementById('tabLogin');
+            const tabRegister = document.getElementById('tabRegister');
 
             if (tab === 'login') {
-                btnLogin.className = "flex-1 pb-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 transition";
-                btnRegister.className = "flex-1 pb-3 text-sm font-medium text-gray-400 hover:text-gray-600 transition";
-                boxLogin.classList.remove('hidden');
-                boxRegister.classList.add('hidden');
+                formLogin.classList.remove('hidden');
+                formRegister.classList.add('hidden');
+                tabLogin.className = 'flex-1 pb-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 transition';
+                tabRegister.className = 'flex-1 pb-3 text-sm font-medium text-gray-400 hover:text-gray-600 transition';
             } else {
-                btnRegister.className = "flex-1 pb-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 transition";
-                btnLogin.className = "flex-1 pb-3 text-sm font-medium text-gray-400 hover:text-gray-600 transition";
-                boxRegister.classList.remove('hidden');
-                boxLogin.classList.add('hidden');
+                formLogin.classList.add('hidden');
+                formRegister.classList.remove('hidden');
+                tabRegister.className = 'flex-1 pb-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-600 transition';
+                tabLogin.className = 'flex-1 pb-3 text-sm font-medium text-gray-400 hover:text-gray-600 transition';
             }
         }
 
-        document.getElementById('formLogin').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const loginId = document.getElementById('loginId').value;
-            const password = document.getElementById('loginPassword').value;
-
-            try {
-                const response = await fetch('/api/login-patient', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ loginId, password })
-                });
-                const result = await response.json();
-
-                if (response.ok) {
-                    localStorage.setItem('patient_user', JSON.stringify(result.user));
-                    window.location.href = 'painel-paciente.html';
-                } else {
-                    alert(result.error || 'Credenciais inválidas.');
-                }
-            } catch (err) {
-                alert('Erro de conexão com o servidor.');
-            }
-        });
-
+        // Cadastro de Paciente
         document.getElementById('formRegister').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const name = document.getElementById('regName').value;
             const cpf = document.getElementById('regCpf').value;
             const email = document.getElementById('regEmail').value;
             const password = document.getElementById('regPassword').value;
@@ -146,15 +129,40 @@
                 const response = await fetch('/api/register-patient', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cpf, email, password })
+                    body: JSON.stringify({ name, cpf, email, password })
                 });
-                const result = await response.json();
 
-                if (response.ok) {
-                    alert('Conta criada com sucesso! Faça login para continuar.');
+                const data = await response.json();
+                if (data.success) {
+                    alert('Cadastro realizado com sucesso! Faça login para continuar.');
                     switchTab('login');
                 } else {
-                    alert(result.error || 'Erro ao cadastrar.');
+                    alert(data.message || 'Erro ao cadastrar.');
+                }
+            } catch (err) {
+                alert('Erro de conexão com o servidor.');
+            }
+        });
+
+        // Login de Paciente
+        document.getElementById('formLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/api/login-patient', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.message || 'E-mail ou senha incorretos.');
                 }
             } catch (err) {
                 alert('Erro de conexão com o servidor.');
