@@ -3,48 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EscalaMed — Gestão Inteligente de Escalas Médicas</title>
+    <title>EscalaMed - Gestão Inteligente de Escalas</title>
+    <!-- Carregamento do Tailwind CSS via CDN para garantir o estilo perfeito -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                DEFAULT: '#00a86b',
+                dark: '#00875a',
+                light: '#e6f6f0',
+                darkblue: '#111827'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <!-- Ícones FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col justify-between">
-    <!-- Cabeçalho -->
-    <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
-        <div class="text-emerald-700 font-bold text-xl">✚ EscalaMed</div>
-        <div class="space-x-4">
-            <a href="medico.html" class="text-sm font-medium text-gray-600 hover:text-emerald-600">Área Médica</a>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Barra Superior -->
+    <header class="bg-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <!-- Logo estilo a imagem enviada -->
+            <a href="#" class="flex items-center space-x-2 font-bold text-xl text-brand">
+                <i class="fa-solid fa-plus text-lg"></i>
+                <span>EscalaMed</span>
+            </a>
+            
+            <nav class="flex items-center space-x-6 text-sm font-medium text-gray-600">
+                <a href="#sobre" class="hover:text-brand transition">O que é?</a>
+                <a href="#ia" class="hover:text-brand transition">Inteligência Artificial</a>
+                <a href="#equipe" class="hover:text-brand transition">Equipe</a>
+                <a href="medico.html" class="text-gray-900 font-semibold hover:text-brand transition">Área Médica</a>
+            </nav>
         </div>
     </header>
 
-    <!-- Conteúdo Principal -->
-    <main class="max-w-5xl mx-auto p-8 w-full flex-1 flex flex-col justify-center items-center text-center">
-        <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">Plataforma Inteligente de Saúde</span>
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">Escolha como deseja acessar o EscalaMed</h1>
-        <p class="text-gray-600 max-w-xl mb-10 text-sm">Gerenciamento de escalas sem conflitos para profissionais e transparência total no atendimento para os pacientes.</p>
+    <!-- Seção Principal de Entrada (Seleção de Perfil MVP) -->
+    <main class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto flex-1 flex flex-col justify-center">
+        <div class="text-center mb-8">
+            <span class="inline-block px-4 py-1 rounded-full bg-brand-light text-brand text-xs font-semibold uppercase tracking-wide mb-4">
+                Plataforma Inteligente de Saúde
+            </span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+                Escolha como deseja acessar o EscalaMed
+            </h1>
+            <p class="mt-3 text-sm text-gray-500 max-w-xl mx-auto">
+                Gerenciamento de escalas sem conflitos para profissionais e transparência total no atendimento para os pacientes.
+            </p>
+        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
-            <!-- Card Paciente -->
-            <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:border-emerald-500 transition flex flex-col justify-between text-left">
+        <!-- Cards estilo a imagem de referência -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full">
+            <!-- Sou Paciente -->
+            <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between hover:border-brand transition">
                 <div>
                     <h2 class="text-xl font-bold text-gray-900 mb-2">Sou Paciente</h2>
-                    <p class="text-gray-600 text-sm mb-6">Consulte sua unidade de saúde de referência, status da fila e médicos em plantão.</p>
+                    <p class="text-xs text-gray-500 leading-relaxed">
+                        Consulte sua unidade de saúde de referência, status da fila e médicos em plantão.
+                    </p>
                 </div>
-                <a href="paciente.html" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition block text-center">Continuar como Paciente</a>
+                <div class="mt-8">
+                    <a href="paciente.html" class="w-full inline-block text-center bg-brand hover:bg-brand-dark text-white font-semibold py-3 px-4 rounded-xl transition text-sm">
+                        Continuar como Paciente
+                    </a>
+                </div>
             </div>
 
-            <!-- Card Médico -->
-            <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:border-emerald-500 transition flex flex-col justify-between text-left">
+            <!-- Sou Profissional -->
+            <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between hover:border-gray-800 transition">
                 <div>
                     <h2 class="text-xl font-bold text-gray-900 mb-2">Sou Profissional</h2>
-                    <p class="text-gray-600 text-sm mb-6">Acesse seu painel, gerencie sua jornada, trocas de plantão e conformidade.</p>
+                    <p class="text-xs text-gray-500 leading-relaxed">
+                        Acesse seu painel, gerencie sua jornada, trocas de plantão e conformidade.
+                    </p>
                 </div>
-                <a href="medico.html" class="w-full bg-gray-900 text-white font-medium py-3 rounded-xl hover:bg-gray-800 transition block text-center">Acessar Painel Médico</a>
+                <div class="mt-8">
+                    <a href="medico.html" class="w-full inline-block text-center bg-brand-darkblue hover:bg-black text-white font-semibold py-3 px-4 rounded-xl transition text-sm">
+                        Acessar Painel Médico
+                    </a>
+                </div>
             </div>
         </div>
+
+        <!-- O QUE É O ESCALAMED? -->
+        <section id="sobre" class="mt-20 pt-10 border-t border-gray-200">
+            <div class="max-w-3xl mx-auto text-left">
+                <span class="text-brand font-bold text-xs uppercase tracking-wider">A Plataforma</span>
+                <h2 class="text-2xl font-bold text-gray-900 mt-1 mb-4">O que é o ESCALAMED?</h2>
+                <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                    O <strong>ESCALAMED</strong> é um sistema de gestão inteligente de escalas hospitalares, desenvolvido com o apoio de Inteligência Artificial para organizar, revisar e otimizar a rotina dos profissionais de saúde. A plataforma permite que as escalas sejam organizadas por setor, facilitando a navegação e o acesso às informações.
+                </p>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    Os profissionais podem visualizar as escalas dos colegas, solicitar trocas de plantões, registrar e justificar faltas, entre outras funcionalidades. Além disso, o sistema também possui uma visão voltada aos pacientes, permitindo consultar a demanda e o número de profissionais disponíveis em cada instituição vinculada à plataforma, trazendo mais transparência e praticidade para a gestão hospitalar.
+                </p>
+            </div>
+        </section>
+
+        <!-- COMO A IA ENTRA NO ESQUEMA? -->
+        <section id="ia" class="mt-16 pt-10 border-t border-gray-200">
+            <div class="max-w-3xl mx-auto text-left">
+                <span class="text-brand font-bold text-xs uppercase tracking-wider">Tecnologia</span>
+                <h2 class="text-2xl font-bold text-gray-900 mt-1 mb-4">Como a IA entra no esquema?</h2>
+                <p class="text-gray-600 text-sm leading-relaxed">
+                    O ESCALAMED será um sistema gerido por Inteligência Artificial, responsável por analisar e organizar as escalas cadastradas, acompanhando a carga horária de cada profissional e verificando se ela está de acordo com os critérios definidos pelo hospital. A IA também poderá identificar profissionais disponíveis e notificá-los sobre oportunidades de plantões ou horas extras, além de auxiliar na validação de atestados e outras informações inseridas no sistema. Dessa forma, o ESCALAMED atuará como um intermediário entre os profissionais e a gestão de cada setor, tornando processos como trocas de plantão mais simples e seguros. Quando um profissional solicitar uma troca, por exemplo, o sistema poderá sugerir outro profissional disponível e compatível com a escala, e a alteração só será efetivada após a autorização tanto do gestor responsável quanto do profissional envolvido.
+                </p>
+            </div>
+        </section>
+
+        <!-- QUEM ESTÁ POR TRÁS DESTE PROJETO? (Apenas os nomes limpos) -->
+        <section id="equipe" class="mt-16 pt-10 border-t border-gray-200 text-center">
+            <span class="text-brand font-bold text-xs uppercase tracking-wider">Equipe</span>
+            <h2 class="text-2xl font-bold text-gray-900 mt-1 mb-6">Quem está por trás deste projeto?</h2>
+            
+            <div class="flex flex-wrap justify-center items-center gap-4 text-sm font-medium text-gray-700 max-w-2xl mx-auto">
+                <span class="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm">Curt Persuhn Neto</span>
+                <span class="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm">Fernanda Maria Roepcke</span>
+                <span class="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm">Helena Bugmann Grott</span>
+                <span class="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm">Nicollas Bennert</span>
+                <span class="bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-sm">Sophia Cristine Penna</span>
+            </div>
+        </section>
     </main>
 
-    <!-- Rodapé -->
-    <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-400">
-        EscalaMed — Gestão inteligente e transparente de escalas médicas.
+    <footer class="bg-white border-t border-gray-200 py-6 text-center text-xs text-gray-400 mt-12">
+        <p>&copy; 2026 EscalaMed - Gestão Inteligente de Escalas.</p>
     </footer>
+
 </body>
 </html>
