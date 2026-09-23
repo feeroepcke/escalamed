@@ -1,148 +1,163 @@
-require('dotenv').config();
 const express = require('express');
+const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração da conexão com o PostgreSQL no Render
+app.use(express.json());
+app.use(express.static('public'));
+
+// Conexão com o PostgreSQL no Render
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
-app.use(express.json());
-
-// Servir arquivos estáticos (HTML, CSS, JS) de dentro da pasta public
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Rota padrão para abrir a página inicial diretamente na URL principal
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Inicializa as tabelas no Banco de Dados
-async function initDb() {
-  try {
-    const client = await pool.connect();
-    
-    // Tabela de Médicos
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS doctors (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        crm VARCHAR(20) UNIQUE NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
-        password VARCHAR(100) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    // Tabela de Pacientes
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS patients (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        cpf VARCHAR(14) UNIQUE NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
-        password VARCHAR(100) NOT NULL,
-        ticket_number VARCHAR(10),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    // Tabela de Plantões / Escalas
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS shifts (
-        id SERIAL PRIMARY KEY,
-        doctor_id INT REFERENCES doctors(id),
-        hospital_name VARCHAR(100) NOT NULL,
-        sector VARCHAR(50) NOT NULL,
-        start_time TIMESTAMP NOT NULL,
-        end_time TIMESTAMP NOT NULL,
-        status VARCHAR(20) DEFAULT 'agendado', -- agendado, trocando, concluido
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    console.log('✅ Banco de dados PostgreSQL conectado e tabelas verificadas/criadas.');
-    client.release();
-  } catch (err) {
-    console.error('❌ Erro ao conectar ou inicializar o banco de dados:', err);
-  }
-}
-
-initDb();
-
-// --- ROTAS DA API ---
+// --- ROTAS DO MÉDICO ---
 
 // Cadastro de Médico
 app.post('/api/register-doctor', async (req, res) => {
   const { name, crm, email, password } = req.body;
+
+  if (!name || !crm || !email || !password) {
+    return res.status(400).json({ success: false, message: 'Preencha todos os campos obrigatórios.' });
+  }
+
+  const cleanEmail = email.toLowerCase().trim();
+  const cleanCrm = crm.trim();
+
   try {
-    const result = await pool.query(
-      'INSERT INTO doctors (name, crm, email, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
-      [name, crm, email, password]
+    // Verifica se já existe e-mail ou CRM cadastrado
+    const checkUser = await pool.query(
+      'SELECT id FROM doctors WHERE email = $1 OR crm = $2',
+      [cleanEmail, cleanCrm]
     );
-    res.status(201).json({ success: true, doctor: result.rows[0] });
-  } catch (error) {
-    res.status(400).json({ success: false, message: 'Erro ao cadastrar médico: E-mail ou CRM já em uso.' });
+
+    if (checkUser.rows.length > 0) {
+      return res.status(400).json({ success: false, message: 'E-mail ou CRM já cadastrado.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      'INSERT INTO doctors (name, crm, email, password_hash) VALUES ($1, $2, $3, $4)',
+      [name, cleanCrm, cleanEmail, hashedPassword]
+    );
+
+    res.json({ success: true, message: 'Médico cadastrado com sucesso!' });
+  } catch (err) {
+    console.error('Erro no cadastro de médico:', err);
+    res.status(500).json({ success: false, message: 'Erro interno no servidor ao cadastrar médico.' });
   }
 });
 
 // Login de Médico
 app.post('/api/login-doctor', async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Informe e-mail e senha.' });
+  }
+
   try {
-    const result = await pool.query(
-      'SELECT * FROM doctors WHERE email = $1 AND password = $2',
-      [email, password]
-    );
-    if (result.rows.length > 0) {
-      res.json({ success: true, redirect: '/dashboard-medico.html', user: result.rows[0] });
-    } else {
-      res.status(401).json({ success: false, message: 'E-mail ou senha incorretos.' });
+    const cleanEmail = email.toLowerCase().trim();
+    const result = await pool.query('SELECT * FROM doctors WHERE email = $1', [cleanEmail]);
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'E-mail ou senha incorretos.' });
     }
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
+
+    const user = result.rows[0];
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'E-mail ou senha incorretos.' });
+    }
+
+    res.json({
+      success: true,
+      redirect: '/dashboard-medico.html',
+      user: { id: user.id, name: user.name, email: user.email }
+    });
+  } catch (err) {
+    console.error('Erro no login de médico:', err);
+    res.status(500).json({ success: false, message: 'Erro interno no servidor ao realizar login.' });
   }
 });
+
+// --- ROTAS DO PACIENTE ---
 
 // Cadastro de Paciente
 app.post('/api/register-patient', async (req, res) => {
   const { name, cpf, email, password } = req.body;
+
+  if (!name || !cpf || !email || !password) {
+    return res.status(400).json({ success: false, message: 'Preencha todos os campos obrigatórios.' });
+  }
+
+  const cleanCpf = cpf.replace(/\D/g, ''); // Remove pontos e hífens do CPF
+  const cleanEmail = email.toLowerCase().trim();
+
   try {
-    const result = await pool.query(
-      'INSERT INTO patients (name, cpf, email, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
-      [name, cpf, email, password]
+    // Verifica se já existe e-mail ou CPF no banco
+    const checkUser = await pool.query(
+      'SELECT id FROM patients WHERE email = $1 OR cpf = $2',
+      [cleanEmail, cleanCpf]
     );
-    res.status(201).json({ success: true, patient: result.rows[0] });
-  } catch (error) {
-    res.status(400).json({ success: false, message: 'Erro ao cadastrar paciente: E-mail ou CPF já em uso.' });
+
+    if (checkUser.rows.length > 0) {
+      return res.status(400).json({ success: false, message: 'E-mail ou CPF já em uso.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      'INSERT INTO patients (name, cpf, email, password_hash) VALUES ($1, $2, $3, $4)',
+      [name, cleanCpf, cleanEmail, hashedPassword]
+    );
+
+    res.json({ success: true, message: 'Paciente cadastrado com sucesso!' });
+  } catch (err) {
+    console.error('Erro no cadastro de paciente:', err);
+    res.status(500).json({ success: false, message: 'Erro interno no servidor ao cadastrar paciente.' });
   }
 });
 
 // Login de Paciente
 app.post('/api/login-patient', async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: 'Informe e-mail e senha.' });
+  }
+
   try {
-    const result = await pool.query(
-      'SELECT * FROM patients WHERE email = $1 AND password = $2',
-      [email, password]
-    );
-    if (result.rows.length > 0) {
-      res.json({ success: true, redirect: '/dashboard-paciente.html', user: result.rows[0] });
-    } else {
-      res.status(401).json({ success: false, message: 'E-mail ou senha incorretos.' });
+    const cleanEmail = email.toLowerCase().trim();
+    const result = await pool.query('SELECT * FROM patients WHERE email = $1', [cleanEmail]);
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ success: false, message: 'E-mail ou senha incorretos.' });
     }
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Erro interno no servidor.' });
+
+    const user = result.rows[0];
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'E-mail ou senha incorretos.' });
+    }
+
+    res.json({
+      success: true,
+      redirect: '/dashboard-paciente.html',
+      user: { id: user.id, name: user.name, email: user.email }
+    });
+  } catch (err) {
+    console.error('Erro no login de paciente:', err);
+    res.status(500).json({ success: false, message: 'Erro interno no servidor ao realizar login.' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT}`);
 });
