@@ -31,7 +31,7 @@ pool.connect((err, client, release) => {
 });
 
 // ==========================================
-// ROTAS DE AUTENTICAÇÃO (MÉDICOS & PACIENTES)
+// ROTAS DE AUTENTICAÇÃO (MÉDICOS, PACIENTES & GESTORES)
 // ==========================================
 
 // Cadastro de Médico
@@ -44,7 +44,6 @@ app.post('/api/register/doctor', async (req, res) => {
       [name, crm, email, hashedPassword]
     );
 
-    // Vincula o médico ao Hospital Santo Antônio por padrão no cadastro
     await pool.query(
       'INSERT INTO doctor_hospitals (doctor_id, hospital_id) VALUES ($1, 1) ON CONFLICT DO NOTHING',
       [result.rows[0].id]
@@ -129,11 +128,154 @@ app.post('/api/login/patient', async (req, res) => {
   }
 });
 
+// Cadastro de Gestor
+app.post('/api/register/manager', async (req, res) => {
+  const { name, hospital, role, email, password } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const result = await pool.query(
+      'INSERT INTO managers (name, hospital, role, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
+      [name, hospital, role, email, hashedPassword]
+    );
+
+    res.status(201).json({ message: 'Gestor cadastrado com sucesso!', user: result.rows[0] });
+  } catch (err) {
+    console.error('Erro no cadastro do gestor:', err);
+    if (err.code === '23505') {
+      return res.status(400).json({ error: 'E-mail já cadastrado.' });
+    }
+    res.status(500).json({ error: 'Erro no servidor ao cadastrar gestor.' });
+  }
+});
+
+// Login de Gestor
+app.post('/api/login/manager', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const result = await pool.query('SELECT * FROM managers WHERE email = $1', [email]);
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+    }
+
+    const manager = result.rows[0];
+    const validPassword = await bcrypt.compare(password, manager.password_hash);
+    if (!validPassword) {
+      return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
+    }
+
+    res.json({
+      message: 'Login realizado com sucesso!',
+      user: {
+        id: manager.id,
+        name: manager.name,
+        hospital: manager.hospital,
+        role: manager.role,
+        email: manager.email,
+        type: 'manager'
+      }
+    });
+  } catch (err) {
+    console.error('Erro no login do gestor:', err);
+    res.status(500).json({ error: 'Erro no servidor ao realizar login.' });
+  }
+});
+
+// ==========================================
+// ROTAS SAAS: GESTÃO DE PLANTÕES (GESTOR)
+// ==========================================
+
+// Criar novo plantão
+app.post('/api/manager/shifts', async (req, res) => {
+  const { hospital_id, shift_date, start_time, end_time, sector, specialty, doctor_id } = req.body;
+
+  if (!hospital_id || !shift_date || !start_time || !end_time || !sector) {
+    return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO shifts (hospital_id, shift_date, start_time, end_time, sector, specialty, doctor_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [hospital_id, shift_date, start_time, end_time, sector, specialty || null, doctor_id || null]
+    );
+
+    res.status(201).json({ message: 'Plantão criado com sucesso!', shift: result.rows[0] });
+  } catch (err) {
+    console.error('Erro ao cadastrar plantão:', err);
+    res.status(500).json({ error: 'Erro no servidor ao criar plantão.' });
+  }
+});
+
+// Listar plantões do hospital para o gestor
+app.get('/api/manager/shifts', async (req, res) => {
+  const { hospital_id } = req.query;
+
+  if (!hospital_id) {
+    return res.status(400).json({ error: 'hospital_id é obrigatório.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT s.id, s.shift_date, s.start_time, s.end_time, s.sector, s.specialty, s.doctor_id, d.name as doctor_name
+       FROM shifts s
+       LEFT JOIN doctors d ON s.doctor_id = d.id
+       WHERE s.hospital_id = $1
+       ORDER BY s.shift_date DESC, s.start_time ASC`,
+      [hospital_id]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar plantões para o gestor:', err);
+    res.status(500).json({ error: 'Erro ao carregar lista de plantões.' });
+  }
+});
+
+// Vincular / Desvincular médico de um plantão
+app.patch('/api/manager/shifts/:id/assign', async (req, res) => {
+  const { id } = req.params;
+  const { doctor_id } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE shifts SET doctor_id = $1 WHERE id = $2 RETURNING *`,
+      [doctor_id || null, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Plantão não encontrado.' });
+    }
+
+    res.json({ message: 'Escala atualizada com sucesso!', shift: result.rows[0] });
+  } catch (err) {
+    console.error('Erro ao atualizar médico do plantão:', err);
+    res.status(500).json({ error: 'Erro no servidor ao atualizar plantão.' });
+  }
+});
+
+// Deletar um plantão
+app.delete('/api/manager/shifts/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query('DELETE FROM shifts WHERE id = $1 RETURNING id', [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Plantão não encontrado.' });
+    }
+
+    res.json({ message: 'Plantão excluído com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao deletar plantão:', err);
+    res.status(500).json({ error: 'Erro no servidor ao excluir plantão.' });
+  }
+});
+
 // ==========================================
 // ROTAS SAAS: DASHBOARD DO MÉDICO
 // ==========================================
 
-// Lista de Hospitais disponíveis no sistema
 app.get('/api/hospitals', async (req, res) => {
   try {
     const result = await pool.query('SELECT id, name FROM hospitals ORDER BY name ASC');
@@ -144,7 +286,6 @@ app.get('/api/hospitals', async (req, res) => {
   }
 });
 
-// Dados para a "Visão Geral" do Médico
 app.get('/api/doctor/overview', async (req, res) => {
   const { doctor_id, hospital_id } = req.query;
 
@@ -153,7 +294,6 @@ app.get('/api/doctor/overview', async (req, res) => {
   }
 
   try {
-    // 1. Busca o próximo plantão do médico logado
     const nextShiftQuery = await pool.query(
       `SELECT shift_date, start_time, end_time, sector 
        FROM shifts 
@@ -162,7 +302,6 @@ app.get('/api/doctor/overview', async (req, res) => {
       [doctor_id, hospital_id]
     );
 
-    // 2. Total de horas confirmadas no mês atual
     const monthHoursQuery = await pool.query(
       `SELECT COUNT(*) * 12 as total_hours 
        FROM shifts 
@@ -171,7 +310,6 @@ app.get('/api/doctor/overview', async (req, res) => {
       [doctor_id, hospital_id]
     );
 
-    // 3. Quantidade de plantões abertos no hospital selecionado
     const openShiftsQuery = await pool.query(
       `SELECT COUNT(*) as open_count 
        FROM shifts 
@@ -190,7 +328,6 @@ app.get('/api/doctor/overview', async (req, res) => {
   }
 });
 
-// Dados da "Minha Escala" (Grade de Plantões Semanal)
 app.get('/api/doctor/schedule', async (req, res) => {
   const { hospital_id } = req.query;
 
@@ -219,7 +356,6 @@ app.get('/api/doctor/schedule', async (req, res) => {
 // ROTAS SAAS: DASHBOARD DO PACIENTE
 // ==========================================
 
-// 1. Dados da Unidade de Saúde (Horários, Endereço e Especialidades)
 app.get('/api/patient/unit-info', async (req, res) => {
   const { hospital_id } = req.query;
   const id = hospital_id || 1;
@@ -248,7 +384,6 @@ app.get('/api/patient/unit-info', async (req, res) => {
   }
 });
 
-// 2. Equipe de Plantão Hoje (Médicos/Enfermeiros escalados)
 app.get('/api/patient/on-duty-team', async (req, res) => {
   const { hospital_id } = req.query;
   const id = hospital_id || 1;

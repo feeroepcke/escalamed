@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EscalaMed - Painel do Gestor</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png?v=latest">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#00a86b',
+              dark: '#00875a',
+              light: '#e6f6f0',
+              darkblue: '#111827'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Ícones FontAwesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+  <!-- Topbar -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center sticky top-0 z-10">
+    <div class="flex items-center space-x-2">
+      <div class="bg-brand-darkblue text-white p-2 rounded-lg flex items-center justify-center">
+        <i class="fa-solid fa-user-shield text-lg"></i>
+      </div>
+      <a href="index.html" class="font-bold text-xl tracking-tight text-gray-900">EscalaMed</a>
+      <span class="ml-2 px-2 py-0.5 text-[10px] uppercase font-extrabold bg-gray-200 text-gray-700 rounded-md">Gestão</span>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <span id="hospitalBadge" class="bg-gray-100 text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-gray-200">
+        Carregando...
+      </span>
+      <div class="flex items-center space-x-2">
+        <div id="userInitials" class="w-8 h-8 rounded-full bg-brand-darkblue text-white font-bold flex items-center justify-center text-xs">
+          GT
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-bold text-gray-800 leading-none" id="userName">Gestor Responsável</p>
+          <p class="text-xs text-gray-500 mt-0.5" id="userRole">Administração</p>
+        </div>
+      </div>
+      <button onclick="logout()" class="text-gray-400 hover:text-red-500 text-sm ml-2 transition" title="Sair">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Layout Principal -->
+  <div class="flex flex-1">
+    <!-- Sidebar / Menu Lateral -->
+    <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex">
+      <div class="space-y-6">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Unidade / Hospital</label>
+          <select id="hospitalSelect" onchange="alterarHospital()" class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg p-2.5 font-medium focus:ring-brand focus:border-brand">
+            <option value="">Carregando hospitais...</option>
+          </select>
+        </div>
+
+        <nav class="space-y-1">
+          <button id="btn-visao-geral" onclick="navegarPara('visao-geral')" class="w-full flex items-center space-x-3 text-brand-darkblue bg-gray-100 font-semibold px-3 py-2.5 rounded-lg text-sm transition">
+            <i class="fa-regular fa-chart-bar w-5"></i>
+            <span>Visão geral</span>
+          </button>
+          <button id="btn-escala-geral" onclick="navegarPara('escala-geral')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-calendar-days w-5"></i>
+            <span>Gestão da Escala</span>
+          </button>
+          <button id="btn-aprovacoes" onclick="navegarPara('aprovacoes')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-solid fa-check-double w-5"></i>
+            <span>Trocas e Aprovações</span>
+          </button>
+          <button id="btn-atestados" onclick="navegarPara('atestados')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-file-lines w-5"></i>
+            <span>Faltas e Atestados</span>
+          </button>
+          <button id="btn-medicos" onclick="navegarPara('medicos')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-solid fa-user-doctor w-5"></i>
+            <span>Corpo Médico</span>
+          </button>
+          <button id="btn-ia-insights" onclick="navegarPara('ia-insights')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-solid fa-wand-magic-sparkles w-5 text-brand"></i>
+            <span>Sugestões da IA</span>
+          </button>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Conteúdo Central Dinâmico -->
+    <main class="flex-1 p-8 overflow-y-auto">
+      <div class="max-w-7xl mx-auto">
+
+        <!-- VISÃO GERAL -->
+        <section id="sec-visao-geral" class="space-y-6">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Visão Geral do Gestor</h1>
+            <p class="text-sm text-gray-500">Acompanhamento operacional e métricas da unidade de saúde.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Card 1: Cobertura da Escala -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Cobertura da Escala</p>
+                <h3 id="cardCobertura" class="text-2xl font-extrabold text-gray-800 mt-1">94%</h3>
+                <p class="text-xs text-emerald-600 font-medium">Plantões preenchidos</p>
+              </div>
+              <div class="bg-emerald-50 text-brand p-3 rounded-xl">
+                <i class="fa-regular fa-calendar-check text-2xl"></i>
+              </div>
+            </div>
+
+            <!-- Card 2: Trocas Pendentes -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Trocas Pendentes</p>
+                <h3 id="cardTrocasPendentes" class="text-2xl font-extrabold text-amber-600 mt-1">0</h3>
+                <p class="text-xs text-gray-500">Aguardando aprovação</p>
+              </div>
+              <div class="bg-amber-50 text-amber-600 p-3 rounded-xl">
+                <i class="fa-solid fa-arrows-rotate text-2xl"></i>
+              </div>
+            </div>
+
+            <!-- Card 3: Plantões Vagos -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Plantões Vagos</p>
+                <h3 id="cardPlantoesVagos" class="text-2xl font-extrabold text-red-600 mt-1">0</h3>
+                <p class="text-xs text-gray-500">Necessitam cobertura</p>
+              </div>
+              <div class="bg-red-50 text-red-600 p-3 rounded-xl">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+              </div>
+            </div>
+
+            <!-- Card 4: Médicos Ativos -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Médicos no Setor</p>
+                <h3 id="cardMedicosAtivos" class="text-2xl font-extrabold text-gray-800 mt-1">--</h3>
+                <p class="text-xs text-gray-500">Cadastrados no hospital</p>
+              </div>
+              <div class="bg-blue-50 text-blue-600 p-3 rounded-xl">
+                <i class="fa-solid fa-user-doctor text-2xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Banner Informativo IA -->
+          <div class="bg-gradient-to-r from-gray-900 via-gray-800 to-brand-darkblue text-white p-6 rounded-2xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+              <div class="bg-emerald-500/20 text-brand p-3 rounded-xl border border-emerald-500/30">
+                <i class="fa-solid fa-wand-magic-sparkles text-2xl"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-base">Assistente de Escala com IA EscalaMed</h4>
+                <p class="text-xs text-gray-300 mt-0.5">Nossa IA analisa automaticamente conflitos de carga horária e sugere substitutos ideais para plantões vagos.</p>
+              </div>
+            </div>
+            <button onclick="navegarPara('ia-insights')" class="bg-brand hover:bg-brand-dark text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition whitespace-nowrap">
+              Ver Recomendações
+            </button>
+          </div>
+        </section>
+
+        <!-- GESTÃO DA ESCALA GERAL -->
+        <section id="sec-escala-geral" class="space-y-6 hidden">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900">Gestão Geral da Escala</h1>
+              <p class="text-sm text-gray-500">Visão completa dos plantões e horários cadastrados na unidade.</p>
+            </div>
+            <button onclick="abrirModalNovoPlantao()" class="bg-brand hover:bg-brand-dark text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-2">
+              <i class="fa-solid fa-plus"></i>
+              <span>Novo Plantão</span>
+            </button>
+          </div>
+
+          <!-- Visão em Grade Semanal / Diária -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
+            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Visão Rápida Semanal</h3>
+            <div id="gridEscalaGestor" class="grid grid-cols-1 md:grid-cols-7 gap-3">
+              <!-- Preenchido via JS -->
+            </div>
+          </div>
+
+          <!-- Tabela Detalhada de Plantões -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+              <h3 class="text-base font-bold text-gray-800">Lista Completa de Plantões</h3>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-400 font-semibold">
+                  <tr>
+                    <th class="px-6 py-3">Data</th>
+                    <th class="px-6 py-3">Horário</th>
+                    <th class="px-6 py-3">Setor</th>
+                    <th class="px-6 py-3">Especialidade</th>
+                    <th class="px-6 py-3">Médico Alocado</th>
+                    <th class="px-6 py-3">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="lista-plantoes">
+                  <!-- Preenchido via JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEÇÃO GENÉRICA (DEMAIS MÓDULOS) -->
+        <section id="sec-outros" class="bg-white p-12 rounded-2xl border border-gray-200 text-center hidden">
+          <i class="fa-solid fa-code text-4xl text-brand-darkblue mb-3"></i>
+          <h2 id="tituloOutros" class="text-xl font-bold text-gray-800">Módulo em Integração</h2>
+          <p class="text-sm text-gray-500 mt-1">Esta funcionalidade da gestão está conectada e pronta para receber novos registros do banco.</p>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL DE CADASTRAR NOVO PLANTÃO -->
+  <div id="modalNovoPlantao" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+      <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+        <h3 class="text-lg font-bold text-gray-900">Cadastrar Novo Plantão</h3>
+        <button onclick="fecharModalNovoPlantao()" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="form-novo-plantao" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Data do Plantão</label>
+          <input type="date" id="shift_date" required class="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Início</label>
+            <input type="time" id="start_time" required class="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Fim</label>
+            <input type="time" id="end_time" required class="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Setor</label>
+          <input type="text" id="sector" placeholder="Ex: UTI Adulto, Pronto Socorro" required class="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Especialidade</label>
+          <input type="text" id="specialty" placeholder="Ex: Cardiologia, Pediatria" class="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Atribuir Médico (Opcional)</label>
+          <select id="doctor_id" class="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg p-2.5 focus:ring-brand focus:border-brand">
+            <option value="">Deixar Vago (Sem médico)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-2 border-t border-gray-100">
+          <button type="button" onclick="fecharModalNovoPlantao()" class="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl hover:bg-gray-200">
+            Cancelar
+          </button>
+          <button type="submit" class="px-4 py-2 bg-brand text-white text-xs font-semibold rounded-xl hover:bg-brand-dark transition">
+            Salvar Plantão
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPTS DE NAVEGAÇÃO E REQUISIÇÕES AO BACKEND -->
+  <script>
+    let gestorData = {};
+    try {
+      gestorData = JSON.parse(localStorage.getItem('escalamed_user') || localStorage.getItem('gestorUser') || '{}');
+    } catch (e) {
+      gestorData = {};
+    }
+
+    const HOSPITAL_ID = gestorData.hospital_id || 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (gestorData && gestorData.name) {
+        document.getElementById('userName').innerText = gestorData.name;
+        const initials = gestorData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        document.getElementById('userInitials').innerText = initials;
+      }
+
+      carregarHospitais();
+      carregarPlantoes();
+      carregarMedicos();
+    });
+
+    // ==========================================
+    // CARREGAR HOSPITAIS E NAVEGAÇÃO
+    // ==========================================
+    async function carregarHospitais() {
+      try {
+        const res = await fetch('/api/hospitals');
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+
+        const hospitals = await res.json();
+        const select = document.getElementById('hospitalSelect');
+        select.innerHTML = '';
+
+        if (!Array.isArray(hospitals) || hospitals.length === 0) {
+          select.innerHTML = '<option value="">Nenhum hospital cadastrado</option>';
+          document.getElementById('hospitalBadge').innerText = 'Sem hospital';
+          return;
+        }
+
+        hospitals.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.id;
+          opt.innerText = h.name;
+          select.appendChild(opt);
+        });
+
+        alterarHospital();
+      } catch (err) {
+        console.error('Erro ao buscar hospitais:', err);
+        document.getElementById('hospitalBadge').innerText = 'Servidor reconectando...';
+      }
+    }
+
+    function alterarHospital() {
+      const select = document.getElementById('hospitalSelect');
+      if (!select.value) return;
+
+      const nomeHospital = select.options[select.selectedIndex].text;
+      document.getElementById('hospitalBadge').innerText = nomeHospital;
+
+      carregarVisaoGeralGestor();
+      carregarEscalaGestor();
+      carregarPlantoes();
+    }
+
+    async function carregarVisaoGeralGestor() {
+      const hospitalId = document.getElementById('hospitalSelect').value || HOSPITAL_ID;
+      if (!hospitalId) return;
+
+      try {
+        const res = await fetch(`/api/doctor/overview?hospital_id=${hospitalId}`);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+
+        const data = await res.json();
+        document.getElementById('cardPlantoesVagos').innerText = data.openShiftsCount || 0;
+        document.getElementById('cardMedicosAtivos').innerText = '12';
+      } catch (err) {
+        console.error('Erro ao carregar visão geral do gestor:', err);
+      }
+    }
+
+    async function carregarEscalaGestor() {
+      const hospitalId = document.getElementById('hospitalSelect').value || HOSPITAL_ID;
+      if (!hospitalId) return;
+
+      try {
+        const res = await fetch(`/api/doctor/schedule?hospital_id=${hospitalId}`);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+
+        const shifts = await res.json();
+        const grid = document.getElementById('gridEscalaGestor');
+
+        if (!Array.isArray(shifts) || shifts.length === 0) {
+          grid.innerHTML = '<p class="text-sm text-gray-500 col-span-7 text-center py-6">Nenhum plantão cadastrado para este hospital.</p>';
+          return;
+        }
+
+        grid.innerHTML = shifts.map(s => `
+          <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2">
+            <p class="text-xs font-semibold text-gray-500">${new Date(s.shift_date).toLocaleDateString('pt-BR')}</p>
+            <div class="${s.doctor_name ? 'bg-white border-gray-200' : 'bg-red-50 border-red-200'} p-2.5 rounded-lg border text-xs">
+              <p class="text-gray-500 font-semibold mb-0.5">${s.start_time.slice(0,5)} - ${s.end_time.slice(0,5)}</p>
+              <p class="font-bold ${s.doctor_name ? 'text-gray-800' : 'text-red-700'}">${s.doctor_name || 'Plantão Vago'}</p>
+              ${!s.doctor_name ? '<span class="inline-block mt-1 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded">Requer Médico</span>' : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao carregar escala:', err);
+      }
+    }
+
+    function navegarPara(aba) {
+      document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
+
+      ['visao-geral', 'escala-geral', 'aprovacoes', 'atestados', 'medicos', 'ia-insights'].forEach(a => {
+        const btn = document.getElementById(`btn-${a}`);
+        if (btn) {
+          btn.className = 'w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition';
+        }
+      });
+
+      const btnAtivo = document.getElementById(`btn-${aba}`);
+      if (btnAtivo) {
+        btnAtivo.className = 'w-full flex items-center space-x-3 text-brand-darkblue bg-gray-100 font-semibold px-3 py-2.5 rounded-lg text-sm transition';
+      }
+
+      if (aba === 'visao-geral') {
+        document.getElementById('sec-visao-geral').classList.remove('hidden');
+      } else if (aba === 'escala-geral') {
+        document.getElementById('sec-escala-geral').classList.remove('hidden');
+      } else {
+        document.getElementById('sec-outros').classList.remove('hidden');
+        document.getElementById('tituloOutros').innerText = `Módulo Gestor: ${aba.toUpperCase()}`;
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('gestorUser');
+      localStorage.removeItem('escalamed_user');
+      window.location.href = '/index.html';
+    }
+
+    // Modal Control
+    function abrirModalNovoPlantao() {
+      document.getElementById('modalNovoPlantao').classList.remove('hidden');
+      document.getElementById('modalNovoPlantao').classList.add('flex');
+    }
+
+    function fecharModalNovoPlantao() {
+      document.getElementById('modalNovoPlantao').classList.add('hidden');
+      document.getElementById('modalNovoPlantao').classList.remove('flex');
+    }
+
+    // ==========================================
+    // 1. CARREGAR E LISTAR PLANTÕES (TABELA)
+    // ==========================================
+    async function carregarPlantoes() {
+      const tabelaBody = document.getElementById('lista-plantoes');
+      if (!tabelaBody) return;
+
+      const hospitalId = document.getElementById('hospitalSelect')?.value || HOSPITAL_ID;
+
+      try {
+        const res = await fetch(`/api/manager/shifts?hospital_id=${hospitalId}`);
+        const plantoes = await res.json();
+
+        if (!res.ok) throw new Error(plantoes.error || 'Erro ao buscar plantões');
+
+        tabelaBody.innerHTML = '';
+
+        if (!Array.isArray(plantoes) || plantoes.length === 0) {
+          tabelaBody.innerHTML = `
+            <tr>
+              <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                Nenhum plantão cadastrado.
+              </td>
+            </tr>`;
+          return;
+        }
+
+        plantoes.forEach(plantao => {
+          const dataFormatada = new Date(plantao.shift_date).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+          const medicoNome = plantao.doctor_name 
+            ? `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">${plantao.doctor_name}</span>`
+            : `<span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">Vago (Sem médico)</span>`;
+
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-gray-100 hover:bg-gray-50';
+          tr.innerHTML = `
+            <td class="px-6 py-4 text-sm font-medium text-gray-900">${dataFormatada}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">${plantao.start_time} - ${plantao.end_time}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">${plantao.sector}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">${plantao.specialty || '-'}</td>
+            <td class="px-6 py-4 text-sm">${medicoNome}</td>
+            <td class="px-6 py-4 text-sm font-medium space-x-2">
+              <button onclick="deletarPlantao(${plantao.id})" class="text-red-600 hover:text-red-800 font-semibold text-xs">
+                Excluir
+              </button>
+            </td>
+          `;
+          tabelaBody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ==========================================
+    // CARREGAR MÉDICOS (SELECT)
+    // ==========================================
+    async function carregarMedicos() {
+      const selectDoctor = document.getElementById('doctor_id');
+      if (!selectDoctor) return;
+
+      try {
+        const res = await fetch('/api/doctors');
+        if (!res.ok) return;
+
+        const medicos = await res.json();
+        if (Array.isArray(medicos)) {
+          medicos.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.innerText = m.name;
+            selectDoctor.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao buscar lista de médicos:', err);
+      }
+    }
+
+    // ==========================================
+    // 2. CADASTRAR NOVO PLANTÃO
+    // ==========================================
+    const formNovoPlantao = document.getElementById('form-novo-plantao');
+    if (formNovoPlantao) {
+      formNovoPlantao.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const hospitalId = document.getElementById('hospitalSelect')?.value || HOSPITAL_ID;
+        const shift_date = document.getElementById('shift_date').value;
+        const start_time = document.getElementById('start_time').value;
+        const end_time = document.getElementById('end_time').value;
+        const sector = document.getElementById('sector').value;
+        const specialty = document.getElementById('specialty')?.value || null;
+        const doctor_id = document.getElementById('doctor_id')?.value || null;
+
+        try {
+          const res = await fetch('/api/manager/shifts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              hospital_id: parseInt(hospitalId),
+              shift_date,
+              start_time,
+              end_time,
+              sector,
+              specialty,
+              doctor_id: doctor_id ? parseInt(doctor_id) : null
+            })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            alert(data.error || 'Erro ao cadastrar plantão.');
+            return;
+          }
+
+          alert('Plantão criado com sucesso!');
+          formNovoPlantao.reset();
+          fecharModalNovoPlantao();
+          carregarPlantoes();
+          carregarEscalaGestor();
+          carregarVisaoGeralGestor();
+        } catch (err) {
+          console.error(err);
+          alert('Erro ao conectar com o servidor.');
+        }
+      });
+    }
+
+    // ==========================================
+    // 3. EXCLUIR PLANTÃO
+    // ==========================================
+    async function deletarPlantao(id) {
+      if (!confirm('Tem certeza que deseja excluir este plantão?')) return;
+
+      try {
+        const res = await fetch(`/api/manager/shifts/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Erro ao deletar plantão.');
+
+        alert('Plantão excluído!');
+        carregarPlantoes();
+        carregarEscalaGestor();
+        carregarVisaoGeralGestor();
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao excluir plantão.');
+      }
+    }
+
+    // ==========================================
+    // 4. ATRIBUIR / VINCULAR MÉDICO
+    // ==========================================
+    async function atribuirMedico(shiftId, doctorId) {
+      try {
+        const res = await fetch(`/api/manager/shifts/${shiftId}/assign`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doctor_id: doctorId ? parseInt(doctorId) : null })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        carregarPlantoes();
+        carregarEscalaGestor();
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao atualizar médico do plantão.');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EscalaMed - Gestão Inteligente de Escalas</title>
-    <link rel="icon" type="image/jpeg" href="/assets/favicon.jpg?v=2">
-    <!-- Carregamento do Tailwind CSS via CDN para garantir o estilo perfeito -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png?v=latest">
+    <!-- Carregamento do Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -31,8 +31,8 @@
     <!-- Header / Barra Superior -->
     <header class="bg-white border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-            <!-- Logo estilo a imagem enviada -->
-            <a href="#" class="flex items-center space-x-2 font-bold text-xl text-brand">
+            <!-- Logo -->
+            <a href="index.html" class="flex items-center space-x-2 font-bold text-xl text-brand">
                 <i class="fa-solid fa-plus text-lg"></i>
                 <span>EscalaMed</span>
             </a>
@@ -41,13 +41,13 @@
                 <a href="#sobre" class="hover:text-brand transition">O que é?</a>
                 <a href="#ia" class="hover:text-brand transition">Inteligência Artificial</a>
                 <a href="#equipe" class="hover:text-brand transition">Equipe</a>
-                <a href="medico.html" class="text-gray-900 font-semibold hover:text-brand transition">Área Médica</a>
+                <a href="https://wa.me/5547997778689" target="_blank" rel="noopener noreferrer" class="text-gray-900 font-semibold hover:text-brand transition">Dúvidas</a>
             </nav>
         </div>
     </header>
 
     <!-- Seção Principal de Entrada (Seleção de Perfil MVP) -->
-    <main class="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto flex-1 flex flex-col justify-center">
+    <main class="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto flex-1 flex flex-col justify-center">
         <div class="text-center mb-8">
             <span class="inline-block px-4 py-1 rounded-full bg-brand-light text-brand text-xs font-semibold uppercase tracking-wide mb-4">
                 Plataforma Inteligente de Saúde
@@ -60,10 +60,11 @@
             </p>
         </div>
 
-        <!-- Cards estilo a imagem de referência -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto w-full">
-            <!-- Sou Paciente -->
-            <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between hover:border-brand transition">
+        <!-- Grid de Seleção (3 Opções) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto w-full">
+            
+            <!-- 1. Sou Paciente (VERDE) -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between hover:border-brand transition">
                 <div>
                     <h2 class="text-xl font-bold text-gray-900 mb-2">Sou Paciente</h2>
                     <p class="text-xs text-gray-500 leading-relaxed">
@@ -77,8 +78,8 @@
                 </div>
             </div>
 
-            <!-- Sou Profissional -->
-            <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between hover:border-gray-800 transition">
+            <!-- 2. Sou Profissional / Médico (VERDE) -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between hover:border-brand transition">
                 <div>
                     <h2 class="text-xl font-bold text-gray-900 mb-2">Sou Profissional</h2>
                     <p class="text-xs text-gray-500 leading-relaxed">
@@ -86,11 +87,27 @@
                     </p>
                 </div>
                 <div class="mt-8">
-                    <a href="medico.html" class="w-full inline-block text-center bg-brand-darkblue hover:bg-black text-white font-semibold py-3 px-4 rounded-xl transition text-sm">
+                    <a href="medico.html" class="w-full inline-block text-center bg-brand hover:bg-brand-dark text-white font-semibold py-3 px-4 rounded-xl transition text-sm">
                         Acessar Painel Médico
                     </a>
                 </div>
             </div>
+
+            <!-- 3. Sou Gestor / Hospital (NEUTRO) -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between hover:border-gray-800 transition">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 mb-2">Sou Gestor</h2>
+                    <p class="text-xs text-gray-500 leading-relaxed">
+                        Aprove trocas de plantões, consulte preferências da equipe e valide atestados.
+                    </p>
+                </div>
+                <div class="mt-8">
+                    <a href="dashboard-gestor.html" class="w-full inline-block text-center bg-brand-darkblue hover:bg-black text-white font-semibold py-3 px-4 rounded-xl transition text-sm">
+                        Painel do Gestor
+                    </a>
+                </div>
+            </div>
+
         </div>
 
         <!-- O QUE É O ESCALAMED? -->
@@ -118,7 +135,7 @@
             </div>
         </section>
 
-        <!-- QUEM ESTÁ POR TRÁS DESTE PROJETO? (Apenas os nomes limpos) -->
+        <!-- QUEM ESTÁ POR TRÁS DESTE PROJETO? -->
         <section id="equipe" class="mt-16 pt-10 border-t border-gray-200 text-center">
             <span class="text-brand font-bold text-xs uppercase tracking-wider">Equipe</span>
             <h2 class="text-2xl font-bold text-gray-900 mt-1 mb-6">Quem está por trás deste projeto?</h2>
