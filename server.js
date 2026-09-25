@@ -141,27 +141,40 @@ app.post('/api/login/patient', async (req, res) => {
   }
 });
 
-// Cadastro de Gestor (Com suporte a tabelas com password_hash ou senha)
+// Cadastro de Gestor (Tratando suporte às colunas password, password_hash ou senha)
 app.post('/api/register/manager', async (req, res) => {
   const { name, hospital, role, email, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     let result;
-    
+
     try {
+      // 1ª Tentativa: Tabela usando 'password'
       result = await pool.query(
-        'INSERT INTO managers (name, hospital, role, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
+        'INSERT INTO managers (name, hospital, role, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
         [name, hospital, role, email, hashedPassword]
       );
-    } catch (dbErr) {
-      // Fallback para caso a coluna da tabela 'managers' seja 'senha' ou 'nome'
-      if (dbErr.code === '42703') { // Coluna não existe
-        result = await pool.query(
-          'INSERT INTO managers (nome, hospital, cargo, email, senha) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome as name, hospital, cargo as role, email',
-          [name, hospital, role, email, hashedPassword]
-        );
+    } catch (dbErr1) {
+      if (dbErr1.code === '42703') { // Coluna 'password' ou 'name' não existe
+        try {
+          // 2ª Tentativa: Tabela usando 'password_hash'
+          result = await pool.query(
+            'INSERT INTO managers (name, hospital, role, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
+            [name, hospital, role, email, hashedPassword]
+          );
+        } catch (dbErr2) {
+          if (dbErr2.code === '42703') {
+            // 3ª Tentativa: Tabela em português ('nome', 'cargo', 'senha')
+            result = await pool.query(
+              'INSERT INTO managers (nome, hospital, cargo, email, senha) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome as name, hospital, cargo as role, email',
+              [name, hospital, role, email, hashedPassword]
+            );
+          } else {
+            throw dbErr2;
+          }
+        }
       } else {
-        throw dbErr;
+        throw dbErr1;
       }
     }
 
