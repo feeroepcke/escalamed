@@ -642,6 +642,129 @@ app.post('/api/doctor/shifts/:id/claim', async (req, res) => {
   }
 });
 
+// ==========================================
+// ROTAS ADM: APRECIAÇÃO DE SOLICITAÇÕES
+// ==========================================
+
+// Lista todas as solicitações pendentes (trocas e candidaturas)
+app.get('/api/manager/requests', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT sr.id, sr.request_type, sr.status, sr.created_at,
+              s.shift_date, s.start_time, s.end_time, s.sector, s.id as shift_id,
+              d1.name as requester_name, d1.crm as requester_crm,
+              d2.name as target_name
+       FROM shift_requests sr
+       JOIN shifts s ON sr.shift_id = s.id
+       JOIN doctors d1 ON sr.requester_doctor_id = d1.id
+       LEFT JOIN doctors d2 ON sr.target_doctor_id = d2.id
+       WHERE sr.status = 'pendente_adm'
+       ORDER BY sr.created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar solicitações:', err);
+    res.status(500).json({ error: 'Erro ao carregar solicitações pendentes.' });
+  }
+});
+
+// ADM aprova ou rejeita solicitação (Troca ou Candidatura)
+app.patch('/api/manager/requests/:id/respond', async (req, res) => {
+  const { id } = req.params;
+  const { action } = req.body; // 'aprovar' ou 'rejeitar'
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const reqResult = await client.query('SELECT * FROM shift_requests WHERE id = $1', [id]);
+    if (reqResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Solicitação não encontrada.' });
+    }
+
+    const requestData = reqResult.rows[0];
+
+    if (action === 'aprovar') {
+      const newDoctorId = requestData.target_doctor_id || requestData.requester_doctor_id;
+      
+      // Atribui o novo médico ao plantão
+      await client.query('UPDATE shifts SET doctor_id = $1 WHERE id = $2', [newDoctorId, requestData.shift_id]);
+      // Atualiza status da solicitação
+      await client.query("UPDATE shift_requests SET status = 'aprovado' WHERE id = $1", [id]);
+    } else {
+      await client.query("UPDATE shift_requests SET status = 'rejeitado' WHERE id = $1", [id]);
+    }
+
+    await client.query('COMMIT');
+    res.json({ message: `Solicitação ${action === 'aprovar' ? 'aprovada' : 'rejeitada'} com sucesso!` });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Erro ao responder solicitação:', err);
+    res.status(500).json({ error: 'Erro ao processar resposta.' });
+  } finally {
+    client.release();
+  }
+});
+
+// ==========================================
+// ROTAS ADM: PREFERÊNCIAS DOS MÉDICOS
+// ==========================================
+
+// Lista médicos e suas preferências cadastradas
+app.get('/api/manager/doctors-preferences', async (req, res) => {
+  const { hospital_id } = req.query;
+  try {
+    const result = await pool.query(
+      `SELECT d.id, d.name, d.crm, d.email,
+              COALESCE(dp.horas_por_turno, 12) as horas_por_turno,
+              COALESCE(dp.max_plantoes_semana, 3) as max_plantoes_semana,
+              COALESCE(dp.turno_preferido, 'qualquer') as turno_preferido,
+              COALESCE(dp.dias_indisponiveis, 'Nenhum') as dias_indisponiveis
+       FROM doctors d
+       JOIN doctor_hospitals dh ON d.id = dh.doctor_id
+       LEFT JOIN doctor_preferences dp ON d.id = dp.doctor_id
+       WHERE dh.hospital_id = $1
+       ORDER BY d.name ASC`,
+      [hospital_id || 1]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar preferências dos médicos:', err);
+    res.status(500).json({ error: 'Erro ao buscar dados dos médicos.' });
+  }
+});
+
+// ==========================================
+// ROTAS ADM: FALTAS, ATESTADOS E REGRAS DE 48H
+// ==========================================
+
+// Visão semanal de faltas para o calendário e notificações de 48h
+app.get('/api/manager/absences/weekly', async (req, res) => {
+  const { start_date, end_date } = req.query; // Ex: 2026-09-21 e 2026-09-27
+  try {
+    const result = await pool.query(
+      `SELECT da.id, da.absence_date, da.reason, da.document_url, da.status, da.created_at,
+              d.name as doctor_name, d.crm,
+              s.sector, s.start_time, s.end_time,
+              CASE 
+                WHEN da.status = 'pendente' AND da.created_at < NOW() - INTERVAL '48 hours' THEN true 
+                ELSE false 
+              END as prazo_48h_estourado
+       FROM doctor_absences da
+       JOIN doctors d ON da.doctor_id = d.id
+       LEFT JOIN shifts s ON da.shift_id = s.id
+       WHERE da.absence_date BETWEEN $1 AND $2
+       ORDER BY da.absence_date ASC`,
+      [start_date, end_date]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar faltas semanais:', err);
+    res.status(500).json({ error: 'Erro ao carregar calendário de faltas.' });
+  }
+});
+
 
 // Inicialização do Servidor
 app.listen(PORT, () => {
