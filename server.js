@@ -3,9 +3,13 @@ const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Inicialização da IA do Google Gemini
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Configuração do Middleware
 app.use(express.json());
@@ -30,7 +34,7 @@ pool.connect((err, client, release) => {
   }
 });
 
-// Helper interno para validar senhas (suporta Hash Bcrypt e Texto Puro)
+// Helper interno para validar senhas
 async function validarSenha(senhaDigitada, senhaBanco) {
   if (!senhaBanco) return false;
   if (senhaBanco.startsWith('$2a$') || senhaBanco.startsWith('$2b$') || senhaBanco.startsWith('$2y$')) {
@@ -38,6 +42,11 @@ async function validarSenha(senhaDigitada, senhaBanco) {
   }
   return senhaDigitada === senhaBanco;
 }
+
+// Rota de teste simples
+app.get('/api/test', (req, res) => {
+  res.json({ status: 'Servidor EscalaMed atualizado e rodando com sucesso!' });
+});
 
 // ==========================================
 // ROTAS DE AUTENTICAÇÃO (MÉDICOS, PACIENTES & GESTORES)
@@ -141,7 +150,7 @@ app.post('/api/login/patient', async (req, res) => {
   }
 });
 
-// Cadastro de Gestor (Tratando suporte às colunas password, password_hash ou senha)
+// Cadastro de Gestor
 app.post('/api/register/manager', async (req, res) => {
   const { name, hospital, role, email, password } = req.body;
   try {
@@ -149,22 +158,19 @@ app.post('/api/register/manager', async (req, res) => {
     let result;
 
     try {
-      // 1ª Tentativa: Tabela usando 'password'
       result = await pool.query(
         'INSERT INTO managers (name, hospital, role, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
         [name, hospital, role, email, hashedPassword]
       );
     } catch (dbErr1) {
-      if (dbErr1.code === '42703') { // Coluna 'password' ou 'name' não existe
+      if (dbErr1.code === '42703') {
         try {
-          // 2ª Tentativa: Tabela usando 'password_hash'
           result = await pool.query(
             'INSERT INTO managers (name, hospital, role, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
             [name, hospital, role, email, hashedPassword]
           );
         } catch (dbErr2) {
           if (dbErr2.code === '42703') {
-            // 3ª Tentativa: Tabela em português ('nome', 'cargo', 'senha')
             result = await pool.query(
               'INSERT INTO managers (nome, hospital, cargo, email, senha) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome as name, hospital, cargo as role, email',
               [name, hospital, role, email, hashedPassword]
@@ -226,7 +232,6 @@ app.post('/api/login/manager', async (req, res) => {
 // ROTAS SAAS: GESTÃO DE PLANTÕES (GESTOR)
 // ==========================================
 
-// Criar novo plantão
 app.post('/api/manager/shifts', async (req, res) => {
   const { hospital_id, shift_date, start_time, end_time, sector, specialty, doctor_id } = req.body;
 
@@ -249,7 +254,6 @@ app.post('/api/manager/shifts', async (req, res) => {
   }
 });
 
-// Listar plantões do hospital para o gestor
 app.get('/api/manager/shifts', async (req, res) => {
   const { hospital_id } = req.query;
 
@@ -274,7 +278,6 @@ app.get('/api/manager/shifts', async (req, res) => {
   }
 });
 
-// Vincular / Desvincular médico de um plantão
 app.patch('/api/manager/shifts/:id/assign', async (req, res) => {
   const { id } = req.params;
   const { doctor_id } = req.body;
@@ -296,7 +299,6 @@ app.patch('/api/manager/shifts/:id/assign', async (req, res) => {
   }
 });
 
-// Deletar um plantão
 app.delete('/api/manager/shifts/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -315,7 +317,140 @@ app.delete('/api/manager/shifts/:id', async (req, res) => {
 });
 
 // ==========================================
-// ROTAS SAAS: DASHBOARD DO MÉDICO
+// ROTAS DE IA: GERADOR INTELIGENTE DE ESCALAS
+// ==========================================
+
+app.post('/api/manager/ai-generate-schedule', async (req, res) => {
+  const { hospital_id } = req.body;
+
+  if (!hospital_id) {
+    return res.status(400).json({ error: 'hospital_id é obrigatório.' });
+  }
+
+  try {
+    // 1. Buscar plantões sem médico atribuído (vagos)
+    const openShiftsResult = await pool.query(
+      `SELECT id, shift_date, start_time, end_time, sector, specialty 
+       FROM shifts 
+       WHERE hospital_id = $1 AND doctor_id IS NULL AND shift_date >= CURRENT_DATE
+       ORDER BY shift_date ASC, start_time ASC`,
+      [hospital_id]
+    );
+
+    const openShifts = openShiftsResult.rows;
+
+    if (openShifts.length === 0) {
+      return res.status(200).json({ 
+        message: 'Não há plantões vagos pendentes de alocação para esta unidade.',
+        allocations: [] 
+      });
+    }
+
+    // 2. Buscar médicos e suas preferências
+    const doctorsResult = await pool.query(
+      `SELECT d.id, d.name, d.crm, 
+              COALESCE(dp.horas_por_turno, 12) as horas_por_turno,
+              COALESCE(dp.max_plantoes_semana, 3) as max_plantoes_semana,
+              COALESCE(dp.turno_preferido, 'qualquer') as turno_preferido,
+              COALESCE(dp.dias_indisponiveis, '') as dias_indisponiveis
+       FROM doctors d
+       JOIN doctor_hospitals dh ON d.id = dh.doctor_id
+       LEFT JOIN doctor_preferences dp ON d.id = dp.doctor_id
+       WHERE dh.hospital_id = $1`,
+      [hospital_id]
+    );
+
+    const doctors = doctorsResult.rows;
+
+    if (doctors.length === 0) {
+      return res.status(400).json({ error: 'Nenhum médico vinculado a esta unidade hospitalar.' });
+    }
+
+    // 3. Montar o prompt estruturado
+    const prompt = `
+Você é o assistente gestor de escalas médicas do sistema EscalaMed.
+Sua missão é distribuir os plantões vagos abaixo entre os médicos disponíveis, respeitando as preferências de cada um da melhor forma possível.
+
+[PLANTÕES VAGOS]:
+${JSON.stringify(openShifts, null, 2)}
+
+[MÉDICOS DISPONÍVEIS E SUAS PREFERÊNCIAS]:
+${JSON.stringify(doctors, null, 2)}
+
+REGRAS DE ALOCAÇÃO:
+1. Tente distribuir os plantões de forma justa sem ultrapassar o 'max_plantoes_semana' de cada médico.
+2. Evite escalar o médico em seus 'dias_indisponiveis' (se houver algum dia especificado).
+3. Respeite o 'turno_preferido' quando viável ('manha', 'tarde', 'noite' ou 'qualquer').
+4. Retorne EXCLUSIVAMENTE um array JSON contendo objetos no seguinte formato, sem texto adicional ou explicações fora do JSON:
+
+[
+  {
+    "shift_id": 12,
+    "doctor_id": 5,
+    "doctor_name": "Dr. Nome",
+    "reasoning": "Alocado por compatibilidade com horário da manhã e limite semanal disponível."
+  }
+]
+`;
+
+    // 4. Chamada para a IA
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+      }
+    });
+
+    const aiTextResponse = response.text;
+    const allocations = JSON.parse(aiTextResponse);
+
+    res.json({
+      message: 'Sugestão de escala gerada com sucesso pela IA!',
+      total_vagas: openShifts.length,
+      allocations
+    });
+
+  } catch (err) {
+    console.error('Erro ao gerar escala automática via IA:', err);
+    res.status(500).json({ error: 'Erro ao processar a escala inteligente com IA.' });
+  }
+});
+
+// Aplicar alocações da IA em lote
+app.post('/api/manager/apply-ai-schedule', async (req, res) => {
+  const { allocations } = req.body;
+
+  if (!Array.isArray(allocations) || allocations.length === 0) {
+    return res.status(400).json({ error: 'Nenhuma alocação válida fornecida.' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    for (const item of allocations) {
+      if (item.shift_id && item.doctor_id) {
+        await client.query(
+          `UPDATE shifts SET doctor_id = $1 WHERE id = $2`,
+          [item.doctor_id, item.shift_id]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+    res.json({ message: 'Escala atualizada com sucesso com base nas sugestões da IA!' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Erro ao aplicar escala da IA:', err);
+    res.status(500).json({ error: 'Erro ao salvar alocações da IA no banco de dados.' });
+  } finally {
+    client.release();
+  }
+});
+
+// ==========================================
+// ROTAS SAAS: DASHBOARD DO MÉDICO & PACIENTE
 // ==========================================
 
 app.get('/api/hospitals', async (req, res) => {
@@ -393,10 +528,6 @@ app.get('/api/doctor/schedule', async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar escala de plantões.' });
   }
 });
-
-// ==========================================
-// ROTAS SAAS: DASHBOARD DO PACIENTE
-// ==========================================
 
 app.get('/api/patient/unit-info', async (req, res) => {
   const { hospital_id } = req.query;
