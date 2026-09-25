@@ -30,6 +30,15 @@ pool.connect((err, client, release) => {
   }
 });
 
+// Helper interno para validar senhas (suporta Hash Bcrypt e Texto Puro)
+async function validarSenha(senhaDigitada, senhaBanco) {
+  if (!senhaBanco) return false;
+  if (senhaBanco.startsWith('$2a$') || senhaBanco.startsWith('$2b$') || senhaBanco.startsWith('$2y$')) {
+    return await bcrypt.compare(senhaDigitada, senhaBanco);
+  }
+  return senhaDigitada === senhaBanco;
+}
+
 // ==========================================
 // ROTAS DE AUTENTICAÇÃO (MÉDICOS, PACIENTES & GESTORES)
 // ==========================================
@@ -69,14 +78,16 @@ app.post('/api/login/doctor', async (req, res) => {
     }
 
     const doctor = result.rows[0];
-    const validPassword = await bcrypt.compare(password, doctor.password_hash);
+    const senhaBanco = doctor.password_hash || doctor.senha || doctor.password;
+    const validPassword = await validarSenha(password, senhaBanco);
+
     if (!validPassword) {
       return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
     }
 
     res.json({
       message: 'Login realizado com sucesso!',
-      user: { id: doctor.id, name: doctor.name, crm: doctor.crm, email: doctor.email }
+      user: { id: doctor.id, name: doctor.name || doctor.nome, crm: doctor.crm, email: doctor.email }
     });
   } catch (err) {
     console.error('Erro no login do médico:', err);
@@ -113,14 +124,16 @@ app.post('/api/login/patient', async (req, res) => {
     }
 
     const patient = result.rows[0];
-    const validPassword = await bcrypt.compare(password, patient.password_hash);
+    const senhaBanco = patient.password_hash || patient.senha || patient.password;
+    const validPassword = await validarSenha(password, senhaBanco);
+
     if (!validPassword) {
       return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
     }
 
     res.json({
       message: 'Login realizado com sucesso!',
-      user: { id: patient.id, name: patient.name, cpf: patient.cpf, email: patient.email }
+      user: { id: patient.id, name: patient.name || patient.nome, cpf: patient.cpf, email: patient.email }
     });
   } catch (err) {
     console.error('Erro no login do paciente:', err);
@@ -128,15 +141,29 @@ app.post('/api/login/patient', async (req, res) => {
   }
 });
 
-// Cadastro de Gestor
+// Cadastro de Gestor (Com suporte a tabelas com password_hash ou senha)
 app.post('/api/register/manager', async (req, res) => {
   const { name, hospital, role, email, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await pool.query(
-      'INSERT INTO managers (name, hospital, role, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
-      [name, hospital, role, email, hashedPassword]
-    );
+    let result;
+    
+    try {
+      result = await pool.query(
+        'INSERT INTO managers (name, hospital, role, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
+        [name, hospital, role, email, hashedPassword]
+      );
+    } catch (dbErr) {
+      // Fallback para caso a coluna da tabela 'managers' seja 'senha' ou 'nome'
+      if (dbErr.code === '42703') { // Coluna não existe
+        result = await pool.query(
+          'INSERT INTO managers (nome, hospital, cargo, email, senha) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome as name, hospital, cargo as role, email',
+          [name, hospital, role, email, hashedPassword]
+        );
+      } else {
+        throw dbErr;
+      }
+    }
 
     res.status(201).json({ message: 'Gestor cadastrado com sucesso!', user: result.rows[0] });
   } catch (err) {
@@ -158,7 +185,9 @@ app.post('/api/login/manager', async (req, res) => {
     }
 
     const manager = result.rows[0];
-    const validPassword = await bcrypt.compare(password, manager.password_hash);
+    const senhaBanco = manager.password_hash || manager.senha || manager.password;
+    const validPassword = await validarSenha(password, senhaBanco);
+
     if (!validPassword) {
       return res.status(401).json({ error: 'E-mail ou senha incorretos.' });
     }
@@ -167,9 +196,9 @@ app.post('/api/login/manager', async (req, res) => {
       message: 'Login realizado com sucesso!',
       user: {
         id: manager.id,
-        name: manager.name,
+        name: manager.name || manager.nome,
         hospital: manager.hospital,
-        role: manager.role,
+        role: manager.role || manager.cargo,
         email: manager.email,
         type: 'manager'
       }
