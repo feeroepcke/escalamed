@@ -35,12 +35,19 @@
     <!-- Conteúdo Principal -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
 
-        <!-- Banner de Boas-Vindas com Unidade do Paciente -->
+        <!-- Banner de Boas-Vindas com Seletor de Unidade -->
         <div class="bg-gradient-to-r from-emerald-800 to-emerald-600 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <span class="text-xs bg-emerald-500/30 text-emerald-100 px-3 py-1 rounded-full font-medium">Unidade de Atendimento Vinculada</span>
-                <h1 class="text-2xl font-bold mt-2" id="unitName">Buscando Unidade...</h1>
-                <p class="text-emerald-100 text-sm mt-1" id="unitAddress">---</p>
+            <div class="w-full md:w-auto">
+                <span class="text-xs bg-emerald-500/30 text-emerald-100 px-3 py-1 rounded-full font-medium">Unidade Selecionada</span>
+                
+                <!-- Seletor Dinâmico de Unidade -->
+                <div class="mt-2 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                    <select id="unitSelector" onchange="changeUnit(this.value)" class="bg-emerald-900/60 border border-emerald-400/40 text-white font-bold text-lg rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-300 w-full sm:w-auto">
+                        <option value="">Carregando unidades...</option>
+                    </select>
+                </div>
+
+                <p class="text-emerald-100 text-sm mt-2" id="unitAddress">Buscando endereço...</p>
             </div>
             <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 text-right w-full md:w-auto">
                 <p class="text-xs text-emerald-200 font-medium">Funcionamento Hoje</p>
@@ -51,7 +58,7 @@
         <!-- Grid de Informações Chave -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- Card 1: Equipe em Plantão Hoje (Tempo Real) -->
+            <!-- Card 1: Equipe em Plantão Hoje -->
             <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                 <div class="flex justify-between items-center mb-6">
                     <div>
@@ -82,7 +89,7 @@
                 </div>
             </div>
 
-            <!-- Card 2: Especialidades Atendidas na Unidade -->
+            <!-- Card 2: Especialidades Atendidas -->
             <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex flex-col justify-between">
                 <div>
                     <h2 class="text-lg font-bold text-gray-900 mb-1">Especialidades Disponíveis</h2>
@@ -105,8 +112,9 @@
     </main>
 
     <script>
-        // Autenticação e Carregamento do Nome do Paciente no Topo
-        document.addEventListener('DOMContentLoaded', () => {
+        let selectedHospitalId = localStorage.getItem('selectedHospitalId') || 1;
+
+        document.addEventListener('DOMContentLoaded', async () => {
             const userData = localStorage.getItem('patientUser') || localStorage.getItem('user');
 
             if (!userData) {
@@ -116,34 +124,73 @@
 
             const user = JSON.parse(userData);
             
-            // Exibe o Nome e CPF exatos no Cabeçalho
-            document.getElementById('patientNameDisplay').innerText = user.name || 'Paciente';
+            document.getElementById('patientNameDisplay').innerText = user.name || user.nome || 'Paciente';
             document.getElementById('patientCpfDisplay').innerText = `CPF: ${user.cpf || 'Não informado'}`;
             
-            // Iniciais no Avatar
-            if (user.name) {
-                const initials = user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            if (user.name || user.nome) {
+                const name = user.name || user.nome;
+                const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
                 document.getElementById('patientAvatar').innerText = initials;
             }
 
-            // Busca os dados dinâmicos das APIs do PostgreSQL
-            fetchUnitInfo();
-            fetchOnDutyTeam();
+            // Carrega as unidades no select e busca os dados da unidade selecionada
+            await fetchHospitalsList();
+            loadUnitData(selectedHospitalId);
         });
 
-        // Buscar Informações da Unidade e Especialidades
-        async function fetchUnitInfo() {
+        // Buscar lista de hospitais para popular o <select>
+        async function fetchHospitalsList() {
             try {
-                const response = await fetch('/api/patient/unit-info?hospital_id=1');
+                const response = await fetch('/api/hospitals');
+                const hospitals = await response.json();
+
+                const select = document.getElementById('unitSelector');
+                select.innerHTML = '';
+
+                if (response.ok && hospitals.length > 0) {
+                    hospitals.forEach(h => {
+                        const option = document.createElement('option');
+                        option.value = h.id;
+                        option.textContent = h.name || h.nome;
+                        if (h.id == selectedHospitalId) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+                } else {
+                    select.innerHTML = '<option value="1">Unidade Central</option>';
+                }
+            } catch (err) {
+                console.error('Erro ao listar hospitais:', err);
+                document.getElementById('unitSelector').innerHTML = '<option value="1">Unidade Central</option>';
+            }
+        }
+
+        // Trocar unidade ao mudar a seleção
+        function changeUnit(hospitalId) {
+            if (!hospitalId) return;
+            selectedHospitalId = hospitalId;
+            localStorage.setItem('selectedHospitalId', hospitalId);
+            loadUnitData(hospitalId);
+        }
+
+        // Recarregar os dados do painel com base na unidade selecionada
+        function loadUnitData(hospitalId) {
+            fetchUnitInfo(hospitalId);
+            fetchOnDutyTeam(hospitalId);
+        }
+
+        // Buscar dados da unidade e especialidades
+        async function fetchUnitInfo(hospitalId) {
+            try {
+                const response = await fetch(`/api/patient/unit-info?hospital_id=${hospitalId}`);
                 const data = await response.json();
 
                 if (response.ok && data.unit) {
-                    document.getElementById('unitName').innerText = data.unit.name;
                     document.getElementById('unitAddress').innerText = data.unit.address || 'Endereço registrado na rede principal';
                     document.getElementById('unitHours').innerText = data.unit.opening_hours || '24 Horas (Urgência & Emergência)';
                     document.getElementById('unitPhone').innerText = data.unit.phone || '(47) 3300-0000';
 
-                    // Renderizar Especialidades
                     const specsContainer = document.getElementById('specialtiesList');
                     specsContainer.innerHTML = '';
 
@@ -167,10 +214,10 @@
             }
         }
 
-        // Buscar Equipe de Plantão do PostgreSQL
-        async function fetchOnDutyTeam() {
+        // Buscar equipe de plantão
+        async function fetchOnDutyTeam(hospitalId) {
             try {
-                const response = await fetch('/api/patient/on-duty-team?hospital_id=1');
+                const response = await fetch(`/api/patient/on-duty-team?hospital_id=${hospitalId}`);
                 const team = await response.json();
 
                 const tbody = document.getElementById('teamTableBody');
@@ -180,7 +227,7 @@
                     team.forEach(doc => {
                         tbody.innerHTML += `
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="py-3 px-4 font-bold text-gray-800">${doc.doctor_name} <span class="text-xs font-normal text-gray-400">(${doc.crm})</span></td>
+                                <td class="py-3 px-4 font-bold text-gray-800">${doc.doctor_name} <span class="text-xs font-normal text-gray-400">(${doc.crm || 'CRM N/A'})</span></td>
                                 <td class="py-3 px-4">
                                     <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded font-medium">${doc.specialty || 'Clínica Médica'}</span>
                                     <span class="text-xs text-gray-400 ml-1">/ ${doc.sector}</span>
@@ -207,6 +254,7 @@
         function logout() {
             localStorage.removeItem('patientUser');
             localStorage.removeItem('user');
+            localStorage.removeItem('selectedHospitalId');
             window.location.href = '/paciente.html';
         }
     </script>
