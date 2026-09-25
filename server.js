@@ -583,6 +583,66 @@ app.get('/api/patient/on-duty-team', async (req, res) => {
   }
 });
 
+// Salvar/Atualizar Preferências do Médico
+app.post('/api/doctor/preferences', async (req, res) => {
+  const { doctor_id, horas_por_turno, max_plantoes_semana, turno_preferido, dias_indisponiveis } = req.body;
+
+  if (!doctor_id) {
+    return res.status(400).json({ error: 'doctor_id é obrigatório.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO doctor_preferences (doctor_id, horas_por_turno, max_plantoes_semana, turno_preferido, dias_indisponiveis)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (doctor_id) DO UPDATE SET
+         horas_por_turno = EXCLUDED.horas_por_turno,
+         max_plantoes_semana = EXCLUDED.max_plantoes_semana,
+         turno_preferido = EXCLUDED.turno_preferido,
+         dias_indisponiveis = EXCLUDED.dias_indisponiveis
+       RETURNING *`,
+      [doctor_id, horas_por_turno || 12, max_plantoes_semana || 3, turno_preferido || 'qualquer', dias_indisponiveis || '']
+    );
+
+    res.json({ message: 'Preferências salvas com sucesso!', preferences: result.rows[0] });
+  } catch (err) {
+    console.error('Erro ao salvar preferências do médico:', err);
+    res.status(500).json({ error: 'Erro ao salvar preferências.' });
+  }
+});
+
+// Médico assume um plantão vago diretamente
+app.post('/api/doctor/shifts/:id/claim', async (req, res) => {
+  const { id } = req.params;
+  const { doctor_id } = req.body;
+
+  if (!doctor_id) {
+    return res.status(400).json({ error: 'doctor_id é obrigatório.' });
+  }
+
+  try {
+    const checkShift = await pool.query('SELECT * FROM shifts WHERE id = $1', [id]);
+    if (checkShift.rows.length === 0) {
+      return res.status(404).json({ error: 'Plantão não encontrado.' });
+    }
+
+    if (checkShift.rows[0].doctor_id !== null) {
+      return res.status(400).json({ error: 'Este plantão já possui médico atribuído.' });
+    }
+
+    const result = await pool.query(
+      'UPDATE shifts SET doctor_id = $1 WHERE id = $2 RETURNING *',
+      [doctor_id, id]
+    );
+
+    res.json({ message: 'Plantão assumido com sucesso!', shift: result.rows[0] });
+  } catch (err) {
+    console.error('Erro ao assumir plantão:', err);
+    res.status(500).json({ error: 'Erro ao assumir plantão.' });
+  }
+});
+
+
 // Inicialização do Servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
