@@ -88,7 +88,7 @@
           </button>
           <button id="btn-medicos" onclick="navegarPara('medicos')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
             <i class="fa-solid fa-user-doctor w-5"></i>
-            <span>Corpo Médico</span>
+            <span>Corpo Médico & Preferências</span>
           </button>
           <button id="btn-ia-insights" onclick="navegarPara('ia-insights')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
             <i class="fa-solid fa-wand-magic-sparkles w-5 text-brand"></i>
@@ -218,6 +218,81 @@
                   <!-- Preenchido via JavaScript -->
                 </tbody>
               </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TROCAS E APROVAÇÕES -->
+        <section id="sec-aprovacoes" class="space-y-6 hidden">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Solicitações de Troca e Vagas</h1>
+            <p class="text-sm text-gray-500">Aprove ou rejeite a transferência de plantões e ocupações solicitadas pelos médicos.</p>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-400 font-semibold">
+                  <tr>
+                    <th class="px-6 py-3">Tipo</th>
+                    <th class="px-6 py-3">Solicitante</th>
+                    <th class="px-6 py-3">Detalhes do Plantão</th>
+                    <th class="px-6 py-3">Destino / Atribuído</th>
+                    <th class="px-6 py-3">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="lista-solicitacoes">
+                  <!-- Preenchido via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- FALTAS E ATESTADOS -->
+        <section id="sec-atestados" class="space-y-6 hidden">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Controle de Faltas e Atestados</h1>
+            <p class="text-sm text-gray-500">Calendário semanal e gerenciamento de justificativas dos médicos.</p>
+          </div>
+
+          <!-- Calendário Semanal de Faltas -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
+            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Status Semanal das Faltas</h3>
+            <div id="gridSemanaFaltas" class="grid grid-cols-1 md:grid-cols-7 gap-3">
+              <!-- Preenchido via JS -->
+            </div>
+          </div>
+
+          <!-- Lista de Ocorrências e Atestados -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4">
+            <h3 class="text-base font-bold text-gray-800">Detalhamento de Ausências e Documentos</h3>
+            <div id="lista-faltas-detalhes" class="space-y-3">
+              <!-- Preenchido via JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- CORPO MÉDICO E PREFERÊNCIAS -->
+        <section id="sec-medicos" class="space-y-6 hidden">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Corpo Médico & Preferências</h1>
+            <p class="text-sm text-gray-500">Consulte o perfil e as preferências operacionais cadastradas por cada profissional.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-3">
+              <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Lista de Médicos</h3>
+              <div id="lista-medicos-preferencias" class="space-y-2 max-h-[500px] overflow-y-auto">
+                <!-- Preenchido via JS -->
+              </div>
+            </div>
+
+            <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+              <h3 class="text-base font-bold text-gray-800 mb-4">Detalhes das Preferências</h3>
+              <div id="detalhes-preferencia-medico" class="text-sm text-gray-500">
+                Selecione um médico da lista ao lado para visualizar suas preferências de turno e limites.
+              </div>
             </div>
           </div>
         </section>
@@ -354,6 +429,9 @@
       carregarVisaoGeralGestor();
       carregarEscalaGestor();
       carregarPlantoes();
+      carregarSolicitacoes();
+      carregarFaltasSemana();
+      carregarPreferenciasMedicos();
     }
 
     async function carregarVisaoGeralGestor() {
@@ -422,6 +500,15 @@
         document.getElementById('sec-visao-geral').classList.remove('hidden');
       } else if (aba === 'escala-geral') {
         document.getElementById('sec-escala-geral').classList.remove('hidden');
+      } else if (aba === 'aprovacoes') {
+        document.getElementById('sec-aprovacoes').classList.remove('hidden');
+        carregarSolicitacoes();
+      } else if (aba === 'atestados') {
+        document.getElementById('sec-atestados').classList.remove('hidden');
+        carregarFaltasSemana();
+      } else if (aba === 'medicos') {
+        document.getElementById('sec-medicos').classList.remove('hidden');
+        carregarPreferenciasMedicos();
       } else {
         document.getElementById('sec-outros').classList.remove('hidden');
         document.getElementById('tituloOutros').innerText = `Módulo Gestor: ${aba.toUpperCase()}`;
@@ -598,25 +685,138 @@
     }
 
     // ==========================================
-    // 4. ATRIBUIR / VINCULAR MÉDICO
+    // INTEGRACÃO: SOLICITAÇÕES / APROVAÇÕES
     // ==========================================
-    async function atribuirMedico(shiftId, doctorId) {
+    async function carregarSolicitacoes() {
+      const tabela = document.getElementById('lista-solicitacoes');
+      if (!tabela) return;
+
       try {
-        const res = await fetch(`/api/manager/shifts/${shiftId}/assign`, {
+        const res = await fetch('/api/manager/requests');
+        const reqs = await res.json();
+
+        if (!Array.isArray(reqs) || reqs.length === 0) {
+          tabela.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhuma solicitação pendente.</td></tr>`;
+          document.getElementById('cardTrocasPendentes').innerText = '0';
+          return;
+        }
+
+        document.getElementById('cardTrocasPendentes').innerText = reqs.length;
+
+        tabela.innerHTML = reqs.map(r => `
+          <tr class="border-b border-gray-100 hover:bg-gray-50">
+            <td class="px-6 py-4 text-xs font-bold uppercase ${r.request_type === 'troca' ? 'text-amber-600' : 'text-blue-600'}">${r.request_type}</td>
+            <td class="px-6 py-4 text-sm font-medium text-gray-800">${r.requester_name} <br><span class="text-xs text-gray-400">CRM ${r.requester_crm}</span></td>
+            <td class="px-6 py-4 text-sm text-gray-600">${new Date(r.shift_date).toLocaleDateString('pt-BR')} (${r.start_time.slice(0,5)}-${r.end_time.slice(0,5)}) - ${r.sector}</td>
+            <td class="px-6 py-4 text-sm text-gray-600">${r.target_name || 'Vaga Aberta'}</td>
+            <td class="px-6 py-4 text-sm space-x-2">
+              <button onclick="responderSolicitacao(${r.id}, 'aprovar')" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-emerald-700">Aprovar</button>
+              <button onclick="responderSolicitacao(${r.id}, 'rejeitar')" class="bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:bg-red-600">Rejeitar</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao buscar solicitações:', err);
+      }
+    }
+
+    async function responderSolicitacao(id, action) {
+      try {
+        const res = await fetch(`/api/manager/requests/${id}/respond`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ doctor_id: doctorId ? parseInt(doctorId) : null })
+          body: JSON.stringify({ action })
         });
-
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-
-        carregarPlantoes();
+        alert(data.message || 'Atualizado com sucesso!');
+        carregarSolicitacoes();
         carregarEscalaGestor();
       } catch (err) {
-        console.error(err);
-        alert('Erro ao atualizar médico do plantão.');
+        console.error('Erro ao responder solicitação:', err);
       }
+    }
+
+    // ==========================================
+    // INTEGRAÇÃO: FALTAS & ATESTADOS (48H)
+    // ==========================================
+    async function carregarFaltasSemana() {
+      const hoje = new Date();
+      const inicio = new Date(hoje.setDate(hoje.getDate() - hoje.getDay())).toISOString().split('T')[0];
+      const fim = new Date(hoje.setDate(hoje.getDate() - hoje.getDay() + 6)).toISOString().split('T')[0];
+
+      try {
+        const res = await fetch(`/api/manager/absences/weekly?start_date=${inicio}&end_date=${fim}`);
+        const faltas = await res.json();
+
+        const grid = document.getElementById('gridSemanaFaltas');
+        const detalhes = document.getElementById('lista-faltas-detalhes');
+
+        if (!Array.isArray(faltas) || faltas.length === 0) {
+          grid.innerHTML = '<p class="col-span-7 text-center text-sm text-gray-500 py-4">Nenhuma falta registrada nesta semana.</p>';
+          detalhes.innerHTML = '<p class="text-sm text-gray-500">Nenhum atestado ou justificativa pendente.</p>';
+          return;
+        }
+
+        detalhes.innerHTML = faltas.map(f => `
+          <div class="p-4 rounded-xl border ${f.prazo_48h_estourado ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-200'} flex justify-between items-center">
+            <div>
+              <p class="text-sm font-bold ${f.prazo_48h_estourado ? 'text-red-800' : 'text-gray-800'}">${f.doctor_name} (CRM ${f.crm})</p>
+              <p class="text-xs text-gray-500">Data da falta: ${new Date(f.absence_date).toLocaleDateString('pt-BR')} | Setor: ${f.sector || 'Geral'}</p>
+              ${f.reason ? `<p class="text-xs text-gray-600 mt-1"><b>Justificativa:</b> ${f.reason}</p>` : ''}
+              ${f.prazo_48h_estourado ? '<span class="inline-block mt-1 text-[11px] font-bold text-red-600"><i class="fa-solid fa-triangle-exclamation"></i> Prazo de 48h para justificativa esgotado! Notificado.</span>' : ''}
+            </div>
+            <div>
+              ${f.document_url ? `<a href="${f.document_url}" target="_blank" class="bg-blue-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-700"><i class="fa-solid fa-paperclip"></i> Ver Atestado</a>` : '<span class="text-xs text-gray-400 italic">Sem atestado anexado</span>'}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao carregar faltas:', err);
+      }
+    }
+
+    // ==========================================
+    // INTEGRAÇÃO: PREFERÊNCIAS DOS MÉDICOS
+    // ==========================================
+    async function carregarPreferenciasMedicos() {
+      const hospitalId = document.getElementById('hospitalSelect')?.value || HOSPITAL_ID;
+      try {
+        const res = await fetch(`/api/manager/doctors-preferences?hospital_id=${hospitalId}`);
+        const medicos = await res.json();
+
+        const lista = document.getElementById('lista-medicos-preferencias');
+        if (!Array.isArray(medicos) || medicos.length === 0) {
+          lista.innerHTML = '<p class="text-xs text-gray-500">Nenhum médico encontrado.</p>';
+          return;
+        }
+
+        lista.innerHTML = medicos.map(m => `
+          <button onclick='exibirDetalhePreferencia(${JSON.stringify(m)})' class="w-full text-left p-2.5 rounded-lg border border-gray-100 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex justify-between items-center">
+            <span>${m.name}</span>
+            <i class="fa-solid fa-chevron-right text-gray-400"></i>
+          </button>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao carregar preferências:', err);
+      }
+    }
+
+    function exibirDetalhePreferencia(medico) {
+      const painel = document.getElementById('detalhes-preferencia-medico');
+      painel.innerHTML = `
+        <div class="space-y-3">
+          <div class="border-b border-gray-100 pb-2">
+            <h4 class="font-bold text-gray-800 text-base">${medico.name}</h4>
+            <p class="text-xs text-gray-400">CRM: ${medico.crm} | Email: ${medico.email}</p>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-xs">
+            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Horas por Turno:</span><b>${medico.horas_por_turno}h</b></div>
+            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Máx. Plantões/Semana:</span><b>${medico.max_plantoes_semana}</b></div>
+            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Turno Preferido:</span><b class="capitalize">${medico.turno_preferido}</b></div>
+            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Dias Indisponíveis:</span><b>${medico.dias_indisponiveis}</b></div>
+          </div>
+        </div>
+      `;
     }
   </script>
 </body>
