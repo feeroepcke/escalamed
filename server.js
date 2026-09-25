@@ -391,7 +391,11 @@ app.get('/api/patient/unit-info', async (req, res) => {
 
   try {
     const unitResult = await pool.query(
-      'SELECT id, name, address, phone, opening_hours FROM hospitals WHERE id = $1',
+      `SELECT id, name, 
+              COALESCE(address, 'Endereço não informado') as address, 
+              COALESCE(phone, '(00) 0000-0000') as phone, 
+              COALESCE(opening_hours, '24 Horas') as opening_hours 
+       FROM hospitals WHERE id = $1`,
       [id]
     );
 
