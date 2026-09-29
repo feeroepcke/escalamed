@@ -34,7 +34,7 @@ pool.connect((err, client, release) => {
   }
 });
 
-// Helper interno para validar senhas
+// Helper interno para validar senhas (suporta senhas hash com bcrypt ou texto simples legado)
 async function validarSenha(senhaDigitada, senhaBanco) {
   if (!senhaBanco) return false;
   if (senhaBanco.startsWith('$2a$') || senhaBanco.startsWith('$2b$') || senhaBanco.startsWith('$2y$')) {
@@ -163,14 +163,14 @@ app.post('/api/register/manager', async (req, res) => {
         [name, hospital, role, email, hashedPassword]
       );
     } catch (dbErr1) {
-      if (dbErr1.code === '42703') {
+      if (dbErr1.code === '42703') { // Coluna 'password' não existe
         try {
           result = await pool.query(
             'INSERT INTO managers (name, hospital, role, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, hospital, role, email',
             [name, hospital, role, email, hashedPassword]
           );
         } catch (dbErr2) {
-          if (dbErr2.code === '42703') {
+          if (dbErr2.code === '42703') { // Schema em português
             result = await pool.query(
               'INSERT INTO managers (nome, hospital, cargo, email, senha) VALUES ($1, $2, $3, $4, $5) RETURNING id, nome as name, hospital, cargo as role, email',
               [name, hospital, role, email, hashedPassword]
@@ -263,7 +263,7 @@ app.get('/api/manager/shifts', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT s.id, s.shift_date, s.start_time, s.end_time, s.sector, s.specialty, s.doctor_id, d.name as doctor_name
+      `SELECT s.id, TO_CHAR(s.shift_date, 'YYYY-MM-DD') as shift_date, s.start_time, s.end_time, s.sector, s.specialty, s.doctor_id, d.name as doctor_name
        FROM shifts s
        LEFT JOIN doctors d ON s.doctor_id = d.id
        WHERE s.hospital_id = $1
@@ -328,9 +328,9 @@ app.post('/api/manager/ai-generate-schedule', async (req, res) => {
   }
 
   try {
-    // 1. Buscar plantões sem médico atribuído (vagos)
+    // 1. Buscar plantões sem médico atribuído (vagos), formatando a data em YYYY-MM-DD
     const openShiftsResult = await pool.query(
-      `SELECT id, shift_date, start_time, end_time, sector, specialty 
+      `SELECT id, TO_CHAR(shift_date, 'YYYY-MM-DD') as shift_date, start_time, end_time, sector, specialty 
        FROM shifts 
        WHERE hospital_id = $1 AND doctor_id IS NULL AND shift_date >= CURRENT_DATE
        ORDER BY shift_date ASC, start_time ASC`,
@@ -393,7 +393,7 @@ REGRAS DE ALOCAÇÃO:
 ]
 `;
 
-    // 4. Chamada para a IA
+    // 4. Chamada para a IA Gemini
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -403,7 +403,15 @@ REGRAS DE ALOCAÇÃO:
     });
 
     const aiTextResponse = response.text;
-    const allocations = JSON.parse(aiTextResponse);
+    
+    // Tratamento defensivo para parsing do JSON retornado pela IA
+    let allocations = [];
+    try {
+      allocations = JSON.parse(aiTextResponse);
+    } catch (parseErr) {
+      console.error('Erro ao parsear resposta JSON da IA:', aiTextResponse);
+      return res.status(500).json({ error: 'A IA retornou uma resposta em formato inválido. Tente novamente.' });
+    }
 
     res.json({
       message: 'Sugestão de escala gerada com sucesso pela IA!',
@@ -472,7 +480,7 @@ app.get('/api/doctor/overview', async (req, res) => {
 
   try {
     const nextShiftQuery = await pool.query(
-      `SELECT shift_date, start_time, end_time, sector 
+      `SELECT TO_CHAR(shift_date, 'YYYY-MM-DD') as shift_date, start_time, end_time, sector 
        FROM shifts 
        WHERE doctor_id = $1 AND hospital_id = $2 AND shift_date >= CURRENT_DATE 
        ORDER BY shift_date ASC, start_time ASC LIMIT 1`,
@@ -514,7 +522,7 @@ app.get('/api/doctor/schedule', async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT s.id, s.shift_date, s.start_time, s.end_time, s.sector, s.doctor_id, d.name as doctor_name
+      `SELECT s.id, TO_CHAR(s.shift_date, 'YYYY-MM-DD') as shift_date, s.start_time, s.end_time, s.sector, s.doctor_id, d.name as doctor_name
        FROM shifts s
        LEFT JOIN doctors d ON s.doctor_id = d.id
        WHERE s.hospital_id = $1
@@ -727,7 +735,7 @@ app.get('/api/manager/requests', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT sr.id, sr.request_type, sr.status, sr.created_at,
-              s.shift_date, s.start_time, s.end_time, s.sector, s.id as shift_id,
+              TO_CHAR(s.shift_date, 'YYYY-MM-DD') as shift_date, s.start_time, s.end_time, s.sector, s.id as shift_id,
               d1.name as requester_name, d1.crm as requester_crm,
               d2.name as target_name
        FROM shift_requests sr
@@ -818,9 +826,14 @@ app.get('/api/manager/doctors-preferences', async (req, res) => {
 // Visão semanal de faltas para o calendário e notificações de 48h
 app.get('/api/manager/absences/weekly', async (req, res) => {
   const { start_date, end_date } = req.query;
+
+  if (!start_date || !end_date) {
+    return res.status(400).json({ error: 'start_date e end_date são obrigatórios.' });
+  }
+
   try {
     const result = await pool.query(
-      `SELECT da.id, da.absence_date, da.reason, da.document_url, da.status, da.created_at,
+      `SELECT da.id, TO_CHAR(da.absence_date, 'YYYY-MM-DD') as absence_date, da.reason, da.document_url, da.status, da.created_at,
               d.name as doctor_name, d.crm,
               s.sector, s.start_time, s.end_time,
               CASE 
@@ -843,5 +856,5 @@ app.get('/api/manager/absences/weekly', async (req, res) => {
 
 // Inicialização do Servidor
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor EscalaMed rodando com sucesso na porta ${PORT}`);
 });
