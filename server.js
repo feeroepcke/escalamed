@@ -328,7 +328,6 @@ app.post('/api/manager/ai-generate-schedule', async (req, res) => {
   }
 
   try {
-    // 1. Buscar plantões sem médico atribuído (vagos), formatando a data em YYYY-MM-DD
     const openShiftsResult = await pool.query(
       `SELECT id, TO_CHAR(shift_date, 'YYYY-MM-DD') as shift_date, start_time, end_time, sector, specialty 
        FROM shifts 
@@ -346,7 +345,6 @@ app.post('/api/manager/ai-generate-schedule', async (req, res) => {
       });
     }
 
-    // 2. Buscar médicos e suas preferências
     const doctorsResult = await pool.query(
       `SELECT d.id, d.name, d.crm, 
               COALESCE(dp.horas_por_turno, 12) as horas_por_turno,
@@ -366,7 +364,6 @@ app.post('/api/manager/ai-generate-schedule', async (req, res) => {
       return res.status(400).json({ error: 'Nenhum médico vinculado a esta unidade hospitalar.' });
     }
 
-    // 3. Montar o prompt estruturado
     const prompt = `
 Você é o assistente gestor de escalas médicas do sistema EscalaMed.
 Sua missão é distribuir os plantões vagos abaixo entre os médicos disponíveis, respeitando as preferências de cada um da melhor forma possível.
@@ -393,7 +390,6 @@ REGRAS DE ALOCAÇÃO:
 ]
 `;
 
-    // 4. Chamada para a IA Gemini
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
@@ -404,7 +400,6 @@ REGRAS DE ALOCAÇÃO:
 
     const aiTextResponse = response.text;
     
-    // Tratamento defensivo para parsing do JSON retornado pela IA
     let allocations = [];
     try {
       allocations = JSON.parse(aiTextResponse);
@@ -425,7 +420,6 @@ REGRAS DE ALOCAÇÃO:
   }
 });
 
-// Aplicar alocações da IA em lote
 app.post('/api/manager/apply-ai-schedule', async (req, res) => {
   const { allocations } = req.body;
 
@@ -454,6 +448,150 @@ app.post('/api/manager/apply-ai-schedule', async (req, res) => {
     res.status(500).json({ error: 'Erro ao salvar alocações da IA no banco de dados.' });
   } finally {
     client.release();
+  }
+});
+
+// ==========================================
+// ROTAS NOVAS: PORTAL DO MÉDICO (SAAS ESCALAMED)
+// ==========================================
+
+// 1. Minha Escala (Gantt Semanal Individual do Médico)
+app.get('/api/doctor/my-schedule', async (req, res) => {
+  const { doctor_id } = req.query;
+  if (!doctor_id) {
+    return res.status(400).json({ error: 'doctor_id é obrigatório.' });
+  }
+  try {
+    const query = `
+      SELECT s.id, TO_CHAR(s.shift_date, 'YYYY-MM-DD') as shift_date, s.start_time, s.end_time, s.sector, s.specialty, h.name as hospital_name
+      FROM shifts s
+      JOIN hospitals h ON s.hospital_id = h.id
+      WHERE s.doctor_id = $1
+      ORDER BY s.shift_date ASC, s.start_time ASC;
+    `;
+    const { rows } = await pool.query(query, [doctor_id]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar escala individual do médico:', err);
+    res.status(500).json({ error: 'Erro ao carregar escala individual do médico.' });
+  }
+});
+
+// 2. Trocas de Plantão (Listagem de Plantões em Oferta)
+app.get('/api/doctor/exchanges', async (req, res) => {
+  const { doctor_id } = req.query;
+  try {
+    const query = `
+      SELECT e.id as exchange_id, s.id as shift_id, TO_CHAR(s.shift_date, 'YYYY-MM-DD') as shift_date, s.start_time, s.end_time, s.sector, 
+             h.name as hospital_name, d.name as doctor_name
+      FROM shift_exchanges e
+      JOIN shifts s ON e.offered_shift_id = s.id
+      JOIN hospitals h ON s.hospital_id = h.id
+      JOIN doctors d ON e.offering_doctor_id = d.id
+      WHERE e.status = 'Disponivel' AND e.offering_doctor_id != $1;
+    `;
+    const { rows } = await pool.query(query, [doctor_id || 0]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar trocas de plantão:', err);
+    res.status(500).json({ error: 'Erro ao buscar trocas disponíveis.' });
+  }
+});
+
+// 2b. Trocas de Plantão (Colocar Plantão Próprio em Oferta)
+app.post('/api/doctor/exchanges/offer', async (req, res) => {
+  const { offered_shift_id, offering_doctor_id } = req.body;
+  if (!offered_shift_id || !offering_doctor_id) {
+    return res.status(400).json({ error: 'offered_shift_id e offering_doctor_id são obrigatórios.' });
+  }
+  try {
+    await pool.query(
+      'INSERT INTO shift_exchanges (offered_shift_id, offering_doctor_id, status) VALUES ($1, $2, $3)',
+      [offered_shift_id, offering_doctor_id, 'Disponivel']
+    );
+    res.json({ success: true, message: 'Plantão colocado em oferta com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao ofertar plantão:', err);
+    res.status(500).json({ error: 'Erro ao disponibilizar plantão para troca.' });
+  }
+});
+
+// 3. Faltas e Documentos (Listagem estilo Akademos)
+app.get('/api/doctor/absences', async (req, res) => {
+  const { doctor_id } = req.query;
+  if (!doctor_id) {
+    return res.status(400).json({ error: 'doctor_id é obrigatório.' });
+  }
+  try {
+    const query = `
+      SELECT a.id, TO_CHAR(a.absence_date, 'YYYY-MM-DD') as absence_date, a.reason, a.document_url, a.status, s.sector, h.name as hospital_name 
+      FROM doctor_absences a
+      LEFT JOIN shifts s ON a.shift_id = s.id
+      LEFT JOIN hospitals h ON s.hospital_id = h.id
+      WHERE a.doctor_id = $1
+      ORDER BY a.absence_date DESC;
+    `;
+    const { rows } = await pool.query(query, [doctor_id]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar faltas e documentos do médico:', err);
+    res.status(500).json({ error: 'Erro ao buscar faltas.' });
+  }
+});
+
+// 3b. Faltas e Documentos (Justificar / Anexar Atestado)
+app.post('/api/doctor/absences/justify', async (req, res) => {
+  const { absence_id, reason, document_url } = req.body;
+  if (!absence_id) {
+    return res.status(400).json({ error: 'absence_id é obrigatório.' });
+  }
+  try {
+    await pool.query(
+      'UPDATE doctor_absences SET reason = $1, document_url = $2, status = $3 WHERE id = $4',
+      [reason, document_url || 'atestado_anexado.pdf', 'Pendente', absence_id]
+    );
+    res.json({ success: true, message: 'Justificativa enviada com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao enviar justificativa de falta:', err);
+    res.status(500).json({ error: 'Erro ao enviar justificativa.' });
+  }
+});
+
+// 4. Oportunidades (Plantões Vagos no Sistema)
+app.get('/api/doctor/opportunities', async (req, res) => {
+  try {
+    const query = `
+      SELECT s.id, TO_CHAR(s.shift_date, 'YYYY-MM-DD') as shift_date, s.start_time, s.end_time, s.sector, s.specialty, h.name as hospital_name
+      FROM shifts s
+      JOIN hospitals h ON s.hospital_id = h.id
+      WHERE s.doctor_id IS NULL AND s.shift_date >= CURRENT_DATE
+      ORDER BY s.shift_date ASC;
+    `;
+    const { rows } = await pool.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar oportunidades de plantão:', err);
+    res.status(500).json({ error: 'Erro ao buscar oportunidades.' });
+  }
+});
+
+// 5. Preferências do Médico (Consulta)
+app.get('/api/doctor/preferences', async (req, res) => {
+  const { doctor_id } = req.query;
+  if (!doctor_id) {
+    return res.status(400).json({ error: 'doctor_id é obrigatório.' });
+  }
+  try {
+    const { rows } = await pool.query('SELECT * FROM doctor_preferences WHERE doctor_id = $1', [doctor_id]);
+    res.json(rows[0] || {
+      horas_por_turno: 12,
+      max_plantoes_semana: 4,
+      turno_preferido: 'Manhã, Noite',
+      dias_indisponiveis: ''
+    });
+  } catch (err) {
+    console.error('Erro ao buscar preferências do médico:', err);
+    res.status(500).json({ error: 'Erro ao buscar preferências.' });
   }
 });
 
@@ -634,15 +772,12 @@ app.get('/api/patient/gantt-schedule', async (req, res) => {
       [id]
     );
 
-    // Converte os horários em percentuais para o posicionamento da barra de Gantt
     const ganttData = result.rows.map(row => {
       const startH = parseFloat(row.start_hour) || 7;
       let endH = parseFloat(row.end_hour) || 19;
       
-      // Ajuste para turnos que viram a noite
       if (endH <= startH) endH += 24;
 
-      // Considerando janela total de 24h a partir das 07:00
       const startRel = (startH >= 7 ? startH - 7 : startH + 17);
       const duration = endH - startH;
 
@@ -755,7 +890,7 @@ app.get('/api/manager/requests', async (req, res) => {
 // ADM aprova ou rejeita solicitação (Troca ou Candidatura)
 app.patch('/api/manager/requests/:id/respond', async (req, res) => {
   const { id } = req.params;
-  const { action } = req.body; // 'aprovar' ou 'rejeitar'
+  const { action } = req.body;
 
   const client = await pool.connect();
   try {
@@ -771,10 +906,7 @@ app.patch('/api/manager/requests/:id/respond', async (req, res) => {
 
     if (action === 'aprovar') {
       const newDoctorId = requestData.target_doctor_id || requestData.requester_doctor_id;
-      
-      // Atribui o novo médico ao plantão
       await client.query('UPDATE shifts SET doctor_id = $1 WHERE id = $2', [newDoctorId, requestData.shift_id]);
-      // Atualiza status da solicitação
       await client.query("UPDATE shift_requests SET status = 'aprovado' WHERE id = $1", [id]);
     } else {
       await client.query("UPDATE shift_requests SET status = 'rejeitado' WHERE id = $1", [id]);
@@ -795,7 +927,6 @@ app.patch('/api/manager/requests/:id/respond', async (req, res) => {
 // ROTAS ADM: PREFERÊNCIAS DOS MÉDICOS
 // ==========================================
 
-// Lista médicos e suas preferências cadastradas
 app.get('/api/manager/doctors-preferences', async (req, res) => {
   const { hospital_id } = req.query;
   try {
@@ -823,7 +954,6 @@ app.get('/api/manager/doctors-preferences', async (req, res) => {
 // ROTAS ADM: FALTAS, ATESTADOS E REGRAS DE 48H
 // ==========================================
 
-// Visão semanal de faltas para o calendário e notificações de 48h
 app.get('/api/manager/absences/weekly', async (req, res) => {
   const { start_date, end_date } = req.query;
 

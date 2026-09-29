@@ -83,7 +83,7 @@
     <main class="flex-1 p-8 overflow-y-auto">
       <div class="max-w-7xl mx-auto">
 
-        <!-- VISÃO GERAL -->
+        <!-- 1. VISÃO GERAL -->
         <section id="sec-visao-geral" class="space-y-6">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Visão Geral do Médico</h1>
@@ -126,41 +126,156 @@
           </div>
         </section>
 
-        <!-- MINHA ESCALA -->
+        <!-- 2. MINHA ESCALA (CALENDÁRIO GANTT SEMANAL INDIVIDUAL) -->
         <section id="sec-minha-escala" class="space-y-6 hidden">
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Escala do setor — Clínica Médica</h1>
-            <p class="text-sm text-gray-500">Grade de plantões para o hospital selecionado</p>
+            <h1 class="text-2xl font-bold text-gray-900">Minha Escala Individual</h1>
+            <p class="text-sm text-gray-500">Cronograma semanal de seus plantões pessoais.</p>
           </div>
 
-          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-            <div id="gridEscala" class="grid grid-cols-1 md:grid-cols-7 gap-3">
-              <!-- Preenchido via JavaScript -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 overflow-x-auto">
+            <div id="ganttHeader" class="grid grid-cols-7 gap-2 border-b border-gray-200 pb-3 mb-4 text-center font-bold text-xs text-gray-600 uppercase">
+              <div>Segunda</div>
+              <div>Terça</div>
+              <div>Quarta</div>
+              <div>Quinta</div>
+              <div>Sexta</div>
+              <div>Sábado</div>
+              <div>Domingo</div>
+            </div>
+            
+            <!-- Linhas de Gantt estilo blocos horizontais -->
+            <div id="ganttBody" class="grid grid-cols-7 gap-2 min-h-[300px]">
+              <!-- Preenchido via JavaScript em blocos/barras de Gantt -->
             </div>
           </div>
         </section>
 
-        <!-- SEÇÃO GENÉRICA (DEMAIS MÓDULOS) -->
-        <section id="sec-outros" class="bg-white p-12 rounded-2xl border border-gray-200 text-center hidden">
-          <i class="fa-solid fa-code text-4xl text-emerald-600 mb-3"></i>
-          <h2 id="tituloOutros" class="text-xl font-bold text-gray-800">Módulo em Integração</h2>
-          <p class="text-sm text-gray-500 mt-1">Essa funcionalidade está conectada e pronta para receber novos registros do banco.</p>
+        <!-- 3. TROCAS DE PLANTÃO -->
+        <section id="sec-trocas" class="space-y-6 hidden">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900">Trocas de Plantão</h1>
+              <p class="text-sm text-gray-500">Plantões em oferta nesta semana. Selecione e ofereça um dos seus.</p>
+            </div>
+            <button onclick="abrirModalOfertar()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-lg transition">
+              <i class="fa-solid fa-plus mr-1"></i> Ofertar Meu Plantão
+            </button>
+          </div>
+
+          <!-- Ícones / Cards Compactos de Plantões para Troca -->
+          <div id="containerTrocas" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Preenchido via JS -->
+          </div>
+        </section>
+
+        <!-- 4. FALTAS E DOCUMENTOS (ESTILO AKADEMOS) -->
+        <section id="sec-faltas" class="space-y-6 hidden">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Faltas e Justificativas</h1>
+            <p class="text-sm text-gray-500">Registros de ausências e envio de atestados.</p>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+                  <th class="p-4">Data</th>
+                  <th class="p-4">Unidade / Setor</th>
+                  <th class="p-4">Status</th>
+                  <th class="p-4">Ação / Atestado</th>
+                </tr>
+              </thead>
+              <tbody id="tabelaFaltas" class="divide-y divide-gray-100 text-xs text-gray-700">
+                <!-- Preenchido via JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 5. OPORTUNIDADES -->
+        <section id="sec-oportunidades" class="space-y-6 hidden">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Oportunidades de Plantão</h1>
+            <p class="text-sm text-gray-500">Horários vagos disponíveis sem escala definida e alinhados às suas preferências.</p>
+          </div>
+
+          <div id="containerOportunidades" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Preenchido via JS -->
+          </div>
+        </section>
+
+        <!-- 6. PREFERÊNCIAS DO MÉDICO -->
+        <section id="sec-preferencias" class="space-y-6 hidden">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Suas Preferências</h1>
+            <p class="text-sm text-gray-500">Ajuste seus limites e horários preferidos para recomendações automáticas.</p>
+          </div>
+
+          <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm max-w-2xl space-y-6">
+            <div class="flex items-center space-x-4">
+              <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                <i class="fa-regular fa-clock text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <label class="block text-xs font-bold text-gray-700 uppercase">Horas máximas por plantão</label>
+                <input type="number" id="prefMaxHours" value="12" class="mt-1 w-full border border-gray-200 rounded-lg p-2 text-sm focus:ring-emerald-500">
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                <i class="fa-regular fa-calendar-check text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <label class="block text-xs font-bold text-gray-700 uppercase">Número máximo de plantões/semana</label>
+                <input type="number" id="prefMaxShifts" value="4" class="mt-1 w-full border border-gray-200 rounded-lg p-2 text-sm focus:ring-emerald-500">
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                <i class="fa-regular fa-sun text-xl"></i>
+              </div>
+              <div class="flex-1">
+                <label class="block text-xs font-bold text-gray-700 uppercase">Horários favoráveis</label>
+                <input type="text" id="prefHours" value="Manhã, Noite" class="mt-1 w-full border border-gray-200 rounded-lg p-2 text-sm focus:ring-emerald-500" placeholder="Ex: Manhã, Tarde, Noite">
+              </div>
+            </div>
+
+            <button onclick="salvarPreferencias()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm py-2.5 rounded-lg transition">
+              Salvar Preferências
+            </button>
+          </div>
         </section>
 
       </div>
     </main>
   </div>
 
-  <!-- Lógica SPA e Requisições Backend -->
+  <!-- Modal para Colocar Plantão Próprio em Oferta -->
+  <div id="modalOfertar" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl space-y-4">
+      <h3 class="text-lg font-bold text-gray-900">Colocar Plantão em Oferta</h3>
+      <p class="text-xs text-gray-500">Selecione qual dos seus plantões você deseja ceder para troca:</p>
+      
+      <select id="selectMeusPlantoes" class="w-full border border-gray-200 rounded-lg p-2.5 text-xs text-gray-700">
+        <!-- Preenchido dinamicamente -->
+      </select>
+
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="fecharModalOfertar()" class="px-4 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-100 rounded-lg">Cancelar</button>
+        <button onclick="confirmarOferta()" class="px-4 py-2 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Colocar em Oferta</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let doctorData = {};
     try {
       doctorData = JSON.parse(localStorage.getItem('doctorUser') || '{}');
-    } catch (e) {
-      doctorData = {};
-    }
+    } catch (e) { doctorData = {}; }
 
-    // Redireciona se não estiver logado
     if (!doctorData || !doctorData.id) {
       window.location.href = '/medico.html';
     }
@@ -180,8 +295,6 @@
     async function carregarHospitais() {
       try {
         const res = await fetch('/api/hospitals');
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-
         const hospitals = await res.json();
         const select = document.getElementById('hospitalSelect');
         select.innerHTML = '';
@@ -201,102 +314,244 @@
 
         alterarHospital();
       } catch (err) {
-        console.error('Erro ao buscar hospitais:', err);
-        document.getElementById('hospitalBadge').innerText = 'Servidor reconectando...';
+        document.getElementById('hospitalBadge').innerText = 'Unidade Principal';
       }
     }
 
     function alterarHospital() {
       const select = document.getElementById('hospitalSelect');
-      if (!select.value) return;
-
-      const nomeHospital = select.options[select.selectedIndex].text;
-      document.getElementById('hospitalBadge').innerText = nomeHospital;
-
+      if (select.value) {
+        document.getElementById('hospitalBadge').innerText = select.options[select.selectedIndex].text;
+      }
       carregarVisaoGeral();
-      carregarEscala();
+      carregarMinhaEscalaGantt();
     }
 
+    // 1. Visão Geral
     async function carregarVisaoGeral() {
       const hospitalId = document.getElementById('hospitalSelect').value;
-      if (!hospitalId || !doctorData.id) return;
-
       try {
         const res = await fetch(`/api/doctor/overview?doctor_id=${doctorData.id}&hospital_id=${hospitalId}`);
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-
         const data = await res.json();
-
         if (data.nextShift) {
           const dataFmt = new Date(data.nextShift.shift_date).toLocaleDateString('pt-BR');
           document.getElementById('cardProximoPlantao').innerText = `${dataFmt}, ${data.nextShift.start_time.slice(0,5)}h`;
           document.getElementById('cardProximoSetor').innerText = data.nextShift.sector;
         } else {
           document.getElementById('cardProximoPlantao').innerText = 'Nenhum agendado';
-          document.getElementById('cardProximoSetor').innerText = 'Sem plantões futuros';
         }
-
         document.getElementById('cardHorasMes').innerText = `${data.monthlyHours || 0}h`;
         document.getElementById('cardPlantoesVagos').innerText = data.openShiftsCount || 0;
-      } catch (err) {
-        console.error('Erro ao carregar visão geral:', err);
-      }
+      } catch (e) {}
     }
 
-    async function carregarEscala() {
-      const hospitalId = document.getElementById('hospitalSelect').value;
-      if (!hospitalId) return;
-
+    // 2. Gantt Semanal Individual
+    async function carregarMinhaEscalaGantt() {
       try {
-        const res = await fetch(`/api/doctor/schedule?hospital_id=${hospitalId}`);
-        if (!res.ok) throw new Error(`Status ${res.status}`);
-
+        const res = await fetch(`/api/doctor/my-schedule?doctor_id=${doctorData.id}`);
         const shifts = await res.json();
-        const grid = document.getElementById('gridEscala');
+        const ganttBody = document.getElementById('ganttBody');
+        ganttBody.innerHTML = '';
 
-        if (!Array.isArray(shifts) || shifts.length === 0) {
-          grid.innerHTML = '<p class="text-sm text-gray-500 col-span-7 text-center py-6">Nenhum plantão cadastrado para este hospital.</p>';
+        // Cria colunas vazias de Segunda a Domingo
+        for (let i = 0; i < 7; i++) {
+          const col = document.createElement('div');
+          col.className = 'bg-gray-50 p-2 rounded-xl border border-gray-100 flex flex-col space-y-2 min-h-[250px]';
+          
+          // Filtra plantões do médico na coluna
+          const plantoesDia = shifts.filter(s => new Date(s.shift_date).getDay() === (i + 1) % 7);
+          
+          plantoesDia.forEach(s => {
+            col.innerHTML += `
+              <div class="bg-emerald-600 text-white p-2.5 rounded-xl shadow-sm text-xs space-y-1">
+                <p class="font-bold">${s.hospital_name}</p>
+                <p class="text-[10px] opacity-90">${s.sector}</p>
+                <div class="bg-emerald-700/60 px-2 py-0.5 rounded text-[10px] inline-block font-mono">
+                  ${s.start_time.slice(0,5)} - ${s.end_time.slice(0,5)}
+                </div>
+              </div>
+            `;
+          });
+          ganttBody.appendChild(col);
+        }
+      } catch (e) {}
+    }
+
+    // 3. Trocas de Plantão
+    async function carregarTrocas() {
+      try {
+        const res = await fetch(`/api/doctor/exchanges?doctor_id=${doctorData.id}`);
+        const list = await res.json();
+        const container = document.getElementById('containerTrocas');
+        container.innerHTML = '';
+
+        if (!list || list.length === 0) {
+          container.innerHTML = '<p class="text-xs text-gray-500 col-span-3">Nenhum plantão em oferta no momento.</p>';
           return;
         }
 
-        grid.innerHTML = shifts.map(s => `
-          <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2">
-            <p class="text-xs font-semibold text-gray-500">${new Date(s.shift_date).toLocaleDateString('pt-BR')}</p>
-            <div class="${s.doctor_id === doctorData.id ? 'bg-emerald-100 border-emerald-300' : 'bg-white border-gray-200'} p-2.5 rounded-lg border text-xs">
-              <p class="text-gray-500 font-semibold mb-0.5">${s.start_time.slice(0,5)} - ${s.end_time.slice(0,5)}</p>
-              <p class="font-bold text-gray-800">${s.doctor_name || 'Plantão Aberto'}</p>
-              ${s.doctor_id === doctorData.id ? '<span class="inline-block mt-1 bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded">Seu Plantão</span>' : ''}
+        list.forEach(t => {
+          container.innerHTML += `
+            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <div class="bg-emerald-100 text-emerald-800 p-3 rounded-lg">
+                  <i class="fa-solid fa-arrows-rotate text-lg"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-xs text-gray-800">${t.hospital_name} - ${t.sector}</h4>
+                  <p class="text-[11px] text-gray-500">${new Date(t.shift_date).toLocaleDateString('pt-BR')} | ${t.start_time.slice(0,5)}h</p>
+                  <p class="text-[10px] text-emerald-700 mt-0.5">Médico: ${t.doctor_name}</p>
+                </div>
+              </div>
+              <button onclick="solicitarTroca(${t.exchange_id})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-2 rounded-lg transition">
+                Solicitar
+              </button>
             </div>
-          </div>
-        `).join('');
-      } catch (err) {
-        console.error('Erro ao carregar escala:', err);
-      }
+          `;
+        });
+      } catch (e) {}
     }
 
+    async function abrirModalOfertar() {
+      document.getElementById('modalOfertar').classList.remove('hidden');
+      const res = await fetch(`/api/doctor/my-schedule?doctor_id=${doctorData.id}`);
+      const shifts = await res.json();
+      const select = document.getElementById('selectMeusPlantoes');
+      select.innerHTML = '';
+
+      shifts.forEach(s => {
+        select.innerHTML += `<option value="${s.id}">${new Date(s.shift_date).toLocaleDateString('pt-BR')} - ${s.hospital_name} (${s.start_time.slice(0,5)}h)</option>`;
+      });
+    }
+
+    function fecharModalOfertar() {
+      document.getElementById('modalOfertar').classList.add('hidden');
+    }
+
+    async function confirmarOferta() {
+      const shiftId = document.getElementById('selectMeusPlantoes').value;
+      if (!shiftId) return;
+
+      await fetch('/api/doctor/exchanges/offer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ offered_shift_id: shiftId, offering_doctor_id: doctorData.id })
+      });
+
+      fecharModalOfertar();
+      carregarTrocas();
+    }
+
+    // 4. Faltas e Documentos
+    async function carregarFaltas() {
+      try {
+        const res = await fetch(`/api/doctor/absences?doctor_id=${doctorData.id}`);
+        const list = await res.json();
+        const tbody = document.getElementById('tabelaFaltas');
+        tbody.innerHTML = '';
+
+        if (!list || list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">Nenhuma falta registrada.</td></tr>';
+          return;
+        }
+
+        list.forEach(f => {
+          tbody.innerHTML += `
+            <tr>
+              <td class="p-4 font-semibold">${new Date(f.absence_date).toLocaleDateString('pt-BR')}</td>
+              <td class="p-4">${f.hospital_name || 'Geral'} - ${f.sector || 'Clínica'}</td>
+              <td class="p-4"><span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-full font-bold text-[10px]">${f.status}</span></td>
+              <td class="p-4">
+                <div class="flex items-center space-x-2">
+                  <input type="text" id="reason-${f.id}" placeholder="Justificativa" value="${f.reason || ''}" class="border rounded p-1.5 text-xs">
+                  <button onclick="enviarAtestado(${f.id})" class="bg-emerald-600 text-white px-2.5 py-1.5 rounded hover:bg-emerald-700">Anexar</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (e) {}
+    }
+
+    async function enviarAtestado(absenceId) {
+      const reason = document.getElementById(`reason-${absenceId}`).value;
+      await fetch('/api/doctor/absences/justify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ absence_id: absenceId, reason, document_url: 'atestado.pdf' })
+      });
+      carregarFaltas();
+    }
+
+    // 5. Oportunidades
+    async function carregarOportunidades() {
+      try {
+        const res = await fetch('/api/doctor/opportunities');
+        const list = await res.json();
+        const container = document.getElementById('containerOportunidades');
+        container.innerHTML = '';
+
+        list.forEach(o => {
+          container.innerHTML += `
+            <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="bg-amber-100 text-amber-800 font-bold text-[10px] px-2.5 py-1 rounded-full">VAGO</span>
+                <span class="text-xs text-gray-400">${new Date(o.shift_date).toLocaleDateString('pt-BR')}</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm text-gray-800">${o.hospital_name}</h4>
+                <p class="text-xs text-gray-500">${o.sector} (${o.start_time.slice(0,5)}h - ${o.end_time.slice(0,5)}h)</p>
+              </div>
+              <button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 rounded-lg transition">Pegar Plantão</button>
+            </div>
+          `;
+        });
+      } catch (e) {}
+    }
+
+    // 6. Preferências
+    async function carregarPreferencias() {
+      try {
+        const res = await fetch(`/api/doctor/preferences?doctor_id=${doctorData.id}`);
+        const pref = await res.json();
+        document.getElementById('prefMaxHours').value = pref.max_hours_per_shift || 12;
+        document.getElementById('prefMaxShifts').value = pref.max_shifts_per_week || 4;
+        document.getElementById('prefHours').value = pref.preferred_hours || 'Manhã, Noite';
+      } catch (e) {}
+    }
+
+    async function salvarPreferencias() {
+      await fetch('/api/doctor/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctor_id: doctorData.id,
+          max_hours_per_shift: document.getElementById('prefMaxHours').value,
+          max_shifts_per_week: document.getElementById('prefMaxShifts').value,
+          preferred_hours: document.getElementById('prefHours').value
+        })
+      });
+      alert('Preferências salvas com sucesso!');
+    }
+
+    // SPA Routing
     function navegarPara(aba) {
       document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
 
       ['visao-geral', 'minha-escala', 'trocas', 'faltas', 'oportunidades', 'preferencias'].forEach(a => {
         const btn = document.getElementById(`btn-${a}`);
-        if (btn) {
-          btn.className = 'w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition';
-        }
+        if (btn) btn.className = 'w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition';
       });
 
       const btnAtivo = document.getElementById(`btn-${aba}`);
-      if (btnAtivo) {
-        btnAtivo.className = 'w-full flex items-center space-x-3 text-emerald-700 bg-emerald-50 font-semibold px-3 py-2.5 rounded-lg text-sm transition';
-      }
+      if (btnAtivo) btnAtivo.className = 'w-full flex items-center space-x-3 text-emerald-700 bg-emerald-50 font-semibold px-3 py-2.5 rounded-lg text-sm transition';
 
-      if (aba === 'visao-geral') {
-        document.getElementById('sec-visao-geral').classList.remove('hidden');
-      } else if (aba === 'minha-escala') {
-        document.getElementById('sec-minha-escala').classList.remove('hidden');
-      } else {
-        document.getElementById('sec-outros').classList.remove('hidden');
-        document.getElementById('tituloOutros').innerText = `Módulo: ${aba.toUpperCase()}`;
-      }
+      document.getElementById(`sec-${aba}`).classList.remove('hidden');
+
+      if (aba === 'trocas') carregarTrocas();
+      if (aba === 'faltas') carregarFaltas();
+      if (aba === 'oportunidades') carregarOportunidades();
+      if (aba === 'preferencias') carregarPreferencias();
     }
 
     function logout() {
