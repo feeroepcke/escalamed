@@ -1,624 +1,308 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Médico - EscalaMed</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EscalaMed - Portal do Médico</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png?v=latest">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
 
-    <!-- Header Navigation -->
-    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-emerald-500 text-slate-900 p-2 rounded-lg font-bold text-xl flex items-center justify-center w-10 h-10 shadow-sm">
-                    EM
-                </div>
-                <div>
-                    <h1 class="font-bold text-lg leading-tight">EscalaMed</h1>
-                    <p class="text-xs text-slate-400">Portal do Médico</p>
-                </div>
-            </div>
-            
-            <div class="flex items-center space-x-4">
-                <div class="text-right hidden sm:block">
-                    <p id="user-name" class="text-sm font-semibold text-slate-100">Carregando...</p>
-                    <p id="user-crm" class="text-xs text-emerald-400">CRM/UF: ---</p>
-                </div>
-                <button onclick="logout()" class="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Sair">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                </button>
-            </div>
+  <!-- Topbar -->
+  <header class="bg-white border-b border-gray-200 px-6 py-3 flex justify-between items-center sticky top-0 z-10">
+    <div class="flex items-center space-x-2">
+      <div class="bg-emerald-600 text-white p-2 rounded-lg flex items-center justify-center">
+        <i class="fa-solid fa-clock text-lg"></i>
+      </div>
+      <span class="font-bold text-xl tracking-tight text-gray-900">EscalaMed</span>
+    </div>
+
+    <div class="flex items-center space-x-4">
+      <span id="hospitalBadge" class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200">
+        Carregando...
+      </span>
+      <div class="flex items-center space-x-2">
+        <div id="userInitials" class="w-8 h-8 rounded-full bg-emerald-200 text-emerald-800 font-bold flex items-center justify-center text-xs">
+          DR
         </div>
-    </header>
+        <div class="text-right">
+          <p class="text-sm font-bold text-gray-800 leading-none" id="userName">Dr. Usuário</p>
+          <p class="text-xs text-gray-500 mt-0.5" id="userCrm">CRM: ---</p>
+        </div>
+      </div>
+      <button onclick="logout()" class="text-gray-400 hover:text-red-500 text-sm ml-2 transition" title="Sair">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
-        
-        <!-- Welcome & Quick Status -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Next Shift Card -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                            Próximo Plantão
-                        </span>
-                        <span id="next-shift-status" class="text-xs text-slate-500 font-medium">--</span>
-                    </div>
-                    <h2 id="next-shift-title" class="text-2xl font-bold text-slate-900 mb-1">Carregando informações...</h2>
-                    <p id="next-shift-hospital" class="text-slate-600 mb-4">Aguarde um momento...</p>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 text-sm">
-                    <div>
-                        <span class="block text-slate-400 text-xs">Data</span>
-                        <span id="next-shift-date" class="font-semibold text-slate-700">--/--/----</span>
-                    </div>
-                    <div>
-                        <span class="block text-slate-400 text-xs">Horário</span>
-                        <span id="next-shift-time" class="font-semibold text-slate-700">--:-- - --:--</span>
-                    </div>
-                    <div>
-                        <span class="block text-slate-400 text-xs">Setor/Especialidade</span>
-                        <span id="next-shift-sector" class="font-semibold text-slate-700">--</span>
-                    </div>
-                </div>
+  <!-- Layout Principal -->
+  <div class="flex flex-1">
+    <!-- Sidebar / Menu Lateral -->
+    <aside class="w-64 bg-white border-r border-gray-200 p-6 flex flex-col justify-between hidden md:flex">
+      <div class="space-y-6">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Instituição</label>
+          <select id="hospitalSelect" onchange="alterarHospital()" class="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg p-2.5 font-medium focus:ring-emerald-500 focus:border-emerald-500">
+            <option value="">Carregando hospitais...</option>
+          </select>
+        </div>
+
+        <nav class="space-y-1">
+          <button id="btn-visao-geral" onclick="navegarPara('visao-geral')" class="w-full flex items-center space-x-3 text-emerald-700 bg-emerald-50 font-semibold px-3 py-2.5 rounded-lg text-sm transition">
+            <i class="fa-regular fa-chart-bar w-5"></i>
+            <span>Visão geral</span>
+          </button>
+          <button id="btn-minha-escala" onclick="navegarPara('minha-escala')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-calendar-days w-5"></i>
+            <span>Minha escala</span>
+          </button>
+          <button id="btn-trocas" onclick="navegarPara('trocas')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-solid fa-arrows-rotate w-5"></i>
+            <span>Trocas de plantão</span>
+          </button>
+          <button id="btn-faltas" onclick="navegarPara('faltas')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-folder-open w-5"></i>
+            <span>Faltas e documentos</span>
+          </button>
+          <button id="btn-oportunidades" onclick="navegarPara('oportunidades')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-lightbulb w-5"></i>
+            <span>Oportunidades</span>
+          </button>
+          <button id="btn-preferencias" onclick="navegarPara('preferencias')" class="w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition">
+            <i class="fa-regular fa-gear w-5"></i>
+            <span>Preferências</span>
+          </button>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Conteúdo Central Dinâmico -->
+    <main class="flex-1 p-8 overflow-y-auto">
+      <div class="max-w-7xl mx-auto">
+
+        <!-- VISÃO GERAL -->
+        <section id="sec-visao-geral" class="space-y-6">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Visão Geral do Médico</h1>
+            <p class="text-sm text-gray-500">Resumo dos seus plantões e atividades na unidade.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Próximo Plantão</p>
+                <h3 id="cardProximoPlantao" class="text-lg font-bold text-gray-800 mt-1">Carregando...</h3>
+                <p id="cardProximoSetor" class="text-xs text-gray-500">---</p>
+              </div>
+              <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                <i class="fa-regular fa-clock text-2xl"></i>
+              </div>
             </div>
 
-            <!-- Quick Actions Card -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                <div>
-                    <h3 class="font-bold text-slate-900 mb-2">Ações Rápidas</h3>
-                    <p class="text-sm text-slate-500 mb-4">Gerencie sua disponibilidade e solicitações de forma simples.</p>
-                </div>
-                <div class="space-y-3">
-                    <button onclick="abrirModalTroca()" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                        </svg>
-                        <span>Solicitar Troca de Plantão</span>
-                    </button>
-                    <button onclick="abrirModalFalta()" class="w-full py-2.5 px-4 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                        </svg>
-                        <span>Justificar Ausência / Falta</span>
-                    </button>
-                </div>
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Horas no Mês</p>
+                <h3 id="cardHorasMes" class="text-2xl font-extrabold text-emerald-700 mt-1">0h</h3>
+                <p class="text-xs text-gray-500">Horas confirmadas</p>
+              </div>
+              <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                <i class="fa-solid fa-business-time text-2xl"></i>
+              </div>
             </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase">Plantões Vagos</p>
+                <h3 id="cardPlantoesVagos" class="text-2xl font-extrabold text-amber-600 mt-1">0</h3>
+                <p class="text-xs text-gray-500">Disponíveis no setor</p>
+              </div>
+              <div class="bg-amber-50 text-amber-600 p-3 rounded-xl">
+                <i class="fa-regular fa-lightbulb text-2xl"></i>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <!-- Gantt View Section (Minha Escala Semanal) -->
-        <section class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-900">Minha Escala Semanal</h2>
-                    <p class="text-sm text-slate-500">Visão em linha do tempo dos seus plantões agendados</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="navegarSemana(-1)" class="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </button>
-                    <span id="semana-atual-label" class="text-sm font-semibold text-slate-700 min-w-[140px] text-center">Semana Atual</span>
-                    <button onclick="navegarSemana(1)" class="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
-                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+        <!-- MINHA ESCALA -->
+        <section id="sec-minha-escala" class="space-y-6 hidden">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Escala do setor — Clínica Médica</h1>
+            <p class="text-sm text-gray-500">Grade de plantões para o hospital selecionado</p>
+          </div>
 
-            <!-- Gantt / Grid Container -->
-            <div class="overflow-x-auto custom-scrollbar pb-2">
-                <div class="min-w-[800px]">
-                    <!-- Days Header -->
-                    <div id="gantt-header" class="grid grid-cols-7 gap-2 border-b border-slate-200 pb-2 mb-4 text-center font-semibold text-sm text-slate-600">
-                        <!-- Gerado via JS -->
-                    </div>
-
-                    <!-- Gantt Body Rows -->
-                    <div id="gantt-body" class="grid grid-cols-7 gap-2 min-h-[120px]">
-                        <!-- Gerado via JS -->
-                    </div>
-                </div>
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div id="gridEscala" class="grid grid-cols-1 md:grid-cols-7 gap-3">
+              <!-- Preenchido via JavaScript -->
             </div>
+          </div>
         </section>
 
-        <!-- Histórico e Status de Solicitantes -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Tabela de Trocas -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="font-bold text-slate-900 mb-4">Minhas Solicitadas de Troca</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-50 text-xs uppercase text-slate-400 border-b border-slate-200">
-                            <tr>
-                                <th class="py-3 px-2">Data/Plantão</th>
-                                <th class="py-3 px-2">Substituto</th>
-                                <th class="py-3 px-2">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-trocas" class="divide-y divide-slate-100">
-                            <tr>
-                                <td colspan="3" class="py-4 text-center text-slate-400">Nenhuma solicitação encontrada.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tabela de Faltas / Ausências -->
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="font-bold text-slate-900 mb-4">Minhas Justificativas de Ausência</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-50 text-xs uppercase text-slate-400 border-b border-slate-200">
-                            <tr>
-                                <th class="py-3 px-2">Data</th>
-                                <th class="py-3 px-2">Motivo</th>
-                                <th class="py-3 px-2">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-faltas" class="divide-y divide-slate-100">
-                            <tr>
-                                <td colspan="3" class="py-4 text-center text-slate-400">Nenhuma falta registrada.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <!-- SEÇÃO GENÉRICA (DEMAIS MÓDULOS) -->
+        <section id="sec-outros" class="bg-white p-12 rounded-2xl border border-gray-200 text-center hidden">
+          <i class="fa-solid fa-code text-4xl text-emerald-600 mb-3"></i>
+          <h2 id="tituloOutros" class="text-xl font-bold text-gray-800">Módulo em Integração</h2>
+          <p class="text-sm text-gray-500 mt-1">Essa funcionalidade está conectada e pronta para receber novos registros do banco.</p>
         </section>
 
+      </div>
     </main>
+  </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400">
-            &copy; 2026 EscalaMed. Todos os direitos reservados.
-        </div>
-    </footer>
+  <!-- Lógica SPA e Requisições Backend -->
+  <script>
+    let doctorData = {};
+    try {
+      doctorData = JSON.parse(localStorage.getItem('doctorUser') || '{}');
+    } catch (e) {
+      doctorData = {};
+    }
 
-    <!-- MODAL: Solicitar Troca -->
-    <div id="modal-troca" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 m-4 relative">
-            <h3 class="text-lg font-bold text-slate-900 mb-4">Solicitar Troca de Plantão</h3>
-            <form id="form-troca" onsubmit="enviarSolicitacaoTroca(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Selecione seu Plantão</label>
-                    <select id="select-plantao-troca" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" required>
-                        <option value="">Carregando plantões...</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Médico Substituto (Opcional)</label>
-                    <select id="select-substituto" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                        <option value="">Deixar aberto para aceite geral</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Motivo / Observação</label>
-                    <textarea id="motivo-troca" rows="3" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Informe o motivo da troca..."></textarea>
-                </div>
-                <div class="flex justify-end space-x-3 pt-2">
-                    <button type="button" onclick="fecharModalTroca()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium">Enviar Solicitação</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    // Redireciona se não estiver logado
+    if (!doctorData || !doctorData.id) {
+      window.location.href = '/medico.html';
+    }
 
-    <!-- MODAL: Justificar Falta -->
-    <div id="modal-falta" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 m-4 relative">
-            <h3 class="text-lg font-bold text-slate-900 mb-4">Justificar Ausência / Falta</h3>
-            <form id="form-falta" onsubmit="enviarJustificativaFalta(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Data da Ausência</label>
-                    <input type="date" id="data-falta" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" required />
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Motivo / Descrição</label>
-                    <textarea id="motivo-falta" rows="3" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="Descreva o motivo..." required></textarea>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Anexar Atestado / Documento (Opcional)</label>
-                    <input type="file" id="arquivo-falta" accept="image/*,.pdf" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
-                </div>
-                <div class="flex justify-end space-x-3 pt-2">
-                    <button type="button" onclick="fecharModalFalta()" class="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium">Registrar Ausência</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('userName').innerText = doctorData.name || 'Médico';
+      document.getElementById('userCrm').innerText = `CRM: ${doctorData.crm || 'N/A'}`;
+      
+      const initials = doctorData.name 
+        ? doctorData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+        : 'DR';
+      document.getElementById('userInitials').innerText = initials;
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // Configuração de Estado Global
-        let doctorData = null;
-        let dataInicioSemana = new Date();
-        // Ajusta para o primeiro dia da semana (Domingo) mantendo a hora local zerada
-        dataInicioSemana.setDate(dataInicioSemana.getDate() - dataInicioSemana.getDay());
-        dataInicioSemana.setHours(0, 0, 0, 0);
+      carregarHospitais();
+    });
 
-        // ======================================================
-        // HELPERS DE DATA (EVITAM ERRO DE FUSO HORÁRIO)
-        // ======================================================
+    async function carregarHospitais() {
+      try {
+        const res = await fetch('/api/hospitals');
+        if (!res.ok) throw new Error(`Status ${res.status}`);
 
-        /**
-         * Extrai 'YYYY-MM-DD' de uma string sem converter pelo fuso do navegador.
-         */
-        function extrairDataISO(val) {
-            if (!val) return '';
-            if (typeof val === 'string') {
-                return val.substring(0, 10);
-            }
-            if (val instanceof Date) {
-                const y = val.getFullYear();
-                const m = String(val.getMonth() + 1).padStart(2, '0');
-                const d = String(val.getDate()).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            }
-            return String(val).substring(0, 10);
+        const hospitals = await res.json();
+        const select = document.getElementById('hospitalSelect');
+        select.innerHTML = '';
+
+        if (!Array.isArray(hospitals) || hospitals.length === 0) {
+          select.innerHTML = '<option value="">Nenhum hospital cadastrado</option>';
+          document.getElementById('hospitalBadge').innerText = 'Sem hospital';
+          return;
         }
 
-        /**
-         * Formata uma string 'YYYY-MM-DD' ou ISO diretamente para 'DD/MM/YYYY' sem bug de timezone.
-         */
-        function formatarDataBR(val) {
-            const iso = extrairDataISO(val);
-            if (!iso || iso.length < 10) return '--/--/----';
-            const [ano, mes, dia] = iso.split('-');
-            return `${dia}/${mes}/${ano}`;
-        }
-
-        /**
-         * Retorna a data no formato YYYY-MM-DD para uso em inputs e comparações locais.
-         */
-        function formatarParaInput(dataObj) {
-            const y = dataObj.getFullYear();
-            const m = String(dataObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dataObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', async () => {
-            await carregarPerfilMedico();
-            await carregarProximoPlantao();
-            await carregarMinhaEscalaSemanal();
-            await carregarHistoricoTrocas();
-            await carregarHistoricoFaltas();
+        hospitals.forEach(h => {
+          const opt = document.createElement('option');
+          opt.value = h.id;
+          opt.innerText = h.name;
+          select.appendChild(opt);
         });
 
-        // 1. Carregar Perfil do Médico Logado
-        async function carregarPerfilMedico() {
-            try {
-                // Em produção, a rota utiliza a sessão/JWT
-                const response = await fetch('/api/doctor/me');
-                if (!response.ok) {
-                    // Fallback para ambiente de teste/demonstração
-                    doctorData = { id: 1, name: 'Dr. Roberto Silva', crm: '123456/SP' };
-                } else {
-                    doctorData = await response.json();
-                }
-                document.getElementById('user-name').innerText = doctorData.name || 'Médico';
-                document.getElementById('user-crm').innerText = `CRM/UF: ${doctorData.crm || 'N/A'}`;
-            } catch (err) {
-                console.warn('Usando dados fictícios do médico:', err);
-                doctorData = { id: 1, name: 'Dr. Roberto Silva', crm: '123456/SP' };
-                document.getElementById('user-name').innerText = doctorData.name;
-                document.getElementById('user-crm').innerText = `CRM/UF: ${doctorData.crm}`;
-            }
+        alterarHospital();
+      } catch (err) {
+        console.error('Erro ao buscar hospitais:', err);
+        document.getElementById('hospitalBadge').innerText = 'Servidor reconectando...';
+      }
+    }
+
+    function alterarHospital() {
+      const select = document.getElementById('hospitalSelect');
+      if (!select.value) return;
+
+      const nomeHospital = select.options[select.selectedIndex].text;
+      document.getElementById('hospitalBadge').innerText = nomeHospital;
+
+      carregarVisaoGeral();
+      carregarEscala();
+    }
+
+    async function carregarVisaoGeral() {
+      const hospitalId = document.getElementById('hospitalSelect').value;
+      if (!hospitalId || !doctorData.id) return;
+
+      try {
+        const res = await fetch(`/api/doctor/overview?doctor_id=${doctorData.id}&hospital_id=${hospitalId}`);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+
+        const data = await res.json();
+
+        if (data.nextShift) {
+          const dataFmt = new Date(data.nextShift.shift_date).toLocaleDateString('pt-BR');
+          document.getElementById('cardProximoPlantao').innerText = `${dataFmt}, ${data.nextShift.start_time.slice(0,5)}h`;
+          document.getElementById('cardProximoSetor').innerText = data.nextShift.sector;
+        } else {
+          document.getElementById('cardProximoPlantao').innerText = 'Nenhum agendado';
+          document.getElementById('cardProximoSetor').innerText = 'Sem plantões futuros';
         }
 
-        // 2. Carregar Próximo Plantão
-        async function carregarProximoPlantao() {
-            try {
-                const response = await fetch(`/api/doctor/${doctorData.id}/next-shift`);
-                if (!response.ok) throw new Error('Falha ao buscar próximo plantão');
-                const shift = await response.json();
+        document.getElementById('cardHorasMes').innerText = `${data.monthlyHours || 0}h`;
+        document.getElementById('cardPlantoesVagos').innerText = data.openShiftsCount || 0;
+      } catch (err) {
+        console.error('Erro ao carregar visão geral:', err);
+      }
+    }
 
-                if (shift && shift.id) {
-                    document.getElementById('next-shift-title').innerText = shift.hospital_name || 'Hospital Principal';
-                    document.getElementById('next-shift-hospital').innerText = shift.unit_name || 'Unidade Central';
-                    document.getElementById('next-shift-date').innerText = formatarDataBR(shift.shift_date);
-                    document.getElementById('next-shift-time').innerText = `${shift.start_time || '--:--'} - ${shift.end_time || '--:--'}`;
-                    document.getElementById('next-shift-sector').innerText = shift.specialty || 'Geral';
-                    document.getElementById('next-shift-status').innerText = 'Confirmado';
-                } else {
-                    exibirSemPlantao();
-                }
-            } catch (err) {
-                exibirSemPlantao();
-            }
+    async function carregarEscala() {
+      const hospitalId = document.getElementById('hospitalSelect').value;
+      if (!hospitalId) return;
+
+      try {
+        const res = await fetch(`/api/doctor/schedule?hospital_id=${hospitalId}`);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+
+        const shifts = await res.json();
+        const grid = document.getElementById('gridEscala');
+
+        if (!Array.isArray(shifts) || shifts.length === 0) {
+          grid.innerHTML = '<p class="text-sm text-gray-500 col-span-7 text-center py-6">Nenhum plantão cadastrado para este hospital.</p>';
+          return;
         }
 
-        function exibirSemPlantao() {
-            document.getElementById('next-shift-title').innerText = 'Nenhum plantão próximo';
-            document.getElementById('next-shift-hospital').innerText = 'Sua agenda está livre para os próximos dias.';
-            document.getElementById('next-shift-date').innerText = '---';
-            document.getElementById('next-shift-time').innerText = '---';
-            document.getElementById('next-shift-sector').innerText = '---';
-            document.getElementById('next-shift-status').innerText = 'Livre';
+        grid.innerHTML = shifts.map(s => `
+          <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 space-y-2">
+            <p class="text-xs font-semibold text-gray-500">${new Date(s.shift_date).toLocaleDateString('pt-BR')}</p>
+            <div class="${s.doctor_id === doctorData.id ? 'bg-emerald-100 border-emerald-300' : 'bg-white border-gray-200'} p-2.5 rounded-lg border text-xs">
+              <p class="text-gray-500 font-semibold mb-0.5">${s.start_time.slice(0,5)} - ${s.end_time.slice(0,5)}</p>
+              <p class="font-bold text-gray-800">${s.doctor_name || 'Plantão Aberto'}</p>
+              ${s.doctor_id === doctorData.id ? '<span class="inline-block mt-1 bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded">Seu Plantão</span>' : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Erro ao carregar escala:', err);
+      }
+    }
+
+    function navegarPara(aba) {
+      document.querySelectorAll('main section').forEach(s => s.classList.add('hidden'));
+
+      ['visao-geral', 'minha-escala', 'trocas', 'faltas', 'oportunidades', 'preferencias'].forEach(a => {
+        const btn = document.getElementById(`btn-${a}`);
+        if (btn) {
+          btn.className = 'w-full flex items-center space-x-3 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-lg text-sm font-medium transition';
         }
+      });
 
-        // 3. Gantt / Escala Semanal
-        async function carregarMinhaEscalaSemanal() {
-            renderizarCabecalhoGantt();
+      const btnAtivo = document.getElementById(`btn-${aba}`);
+      if (btnAtivo) {
+        btnAtivo.className = 'w-full flex items-center space-x-3 text-emerald-700 bg-emerald-50 font-semibold px-3 py-2.5 rounded-lg text-sm transition';
+      }
 
-            try {
-                const startStr = formatarParaInput(dataInicioSemana);
-                
-                const fimSemana = new Date(dataInicioSemana);
-                fimSemana.setDate(fimSemana.getDate() + 6);
-                const endStr = formatarParaInput(fimSemana);
+      if (aba === 'visao-geral') {
+        document.getElementById('sec-visao-geral').classList.remove('hidden');
+      } else if (aba === 'minha-escala') {
+        document.getElementById('sec-minha-escala').classList.remove('hidden');
+      } else {
+        document.getElementById('sec-outros').classList.remove('hidden');
+        document.getElementById('tituloOutros').innerText = `Módulo: ${aba.toUpperCase()}`;
+      }
+    }
 
-                const response = await fetch(`/api/doctor/${doctorData.id}/shifts?start_date=${startStr}&end_date=${endStr}`);
-                let shifts = [];
-                if (response.ok) {
-                    shifts = await response.json();
-                }
-
-                renderizarCorpoGantt(shifts);
-            } catch (err) {
-                console.error('Erro ao carregar escala:', err);
-                renderizarCorpoGantt([]);
-            }
-        }
-
-        function renderizarCabecalhoGantt() {
-            const container = document.getElementById('gantt-header');
-            container.innerHTML = '';
-            
-            const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-            
-            for (let i = 0; i < 7; i++) {
-                const dia = new Date(dataInicioSemana);
-                dia.setDate(dia.getDate() + i);
-                const diaNum = String(dia.getDate()).padStart(2, '0');
-                const mesNum = String(dia.getMonth() + 1).padStart(2, '0');
-
-                const div = document.createElement('div');
-                div.className = 'flex flex-col items-center';
-                div.innerHTML = `
-                    <span class="text-xs text-slate-400">${diasSemana[i]}</span>
-                    <span class="text-slate-800">${diaNum}/${mesNum}</span>
-                `;
-                container.appendChild(div);
-            }
-
-            // Atualizar Label
-            const inicioLabel = formatarDataBR(dataInicioSemana);
-            const fimTemp = new Date(dataInicioSemana);
-            fimTemp.setDate(fimTemp.getDate() + 6);
-            const fimLabel = formatarDataBR(fimTemp);
-            document.getElementById('semana-atual-label').innerText = `${inicioLabel} - ${fimLabel}`;
-        }
-
-        function renderizarCorpoGantt(shifts) {
-            const container = document.getElementById('gantt-body');
-            container.innerHTML = '';
-
-            for (let i = 0; i < 7; i++) {
-                const diaAtual = new Date(dataInicioSemana);
-                diaAtual.setDate(diaAtual.getDate() + i);
-                const dataIsoStr = formatarParaInput(diaAtual);
-
-                // Filtra plantões combinando YYYY-MM-DD de forma segura sem timezone
-                const plantoesDoDia = shifts.filter(s => extrairDataISO(s.shift_date) === dataIsoStr);
-
-                const col = document.createElement('div');
-                col.className = 'bg-slate-50 border border-slate-100 rounded-lg p-1.5 flex flex-col space-y-1.5 min-h-[100px]';
-
-                if (plantoesDoDia.length === 0) {
-                    col.innerHTML = `<span class="text-[10px] text-slate-300 text-center my-auto">Folga</span>`;
-                } else {
-                    plantoesDoDia.forEach(s => {
-                        const card = document.createElement('div');
-                        card.className = 'bg-emerald-50 border border-emerald-200 text-emerald-900 rounded p-1.5 text-xs shadow-sm flex flex-col justify-between';
-                        card.innerHTML = `
-                            <span class="font-bold truncate">${s.hospital_name || 'Plantão'}</span>
-                            <span class="text-[10px] text-emerald-700">${s.start_time} - ${s.end_time}</span>
-                        `;
-                        col.appendChild(card);
-                    });
-                }
-                container.appendChild(col);
-            }
-        }
-
-        function navegarSemana(direcao) {
-            dataInicioSemana.setDate(dataInicioSemana.getDate() + (direcao * 7));
-            carregarMinhaEscalaSemanal();
-        }
-
-        // 4. Carregar Histórico de Trocas
-        async function carregarHistoricoTrocas() {
-            try {
-                const res = await fetch(`/api/doctor/${doctorData.id}/shift-exchanges`);
-                if (!res.ok) return;
-                const trocas = await res.json();
-                
-                const tbody = document.getElementById('tabela-trocas');
-                if (!trocas || trocas.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-400">Nenhuma solicitação encontrada.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = trocas.map(t => `
-                    <tr>
-                        <td class="py-2 px-2 font-medium">${formatarDataBR(t.shift_date)}</td>
-                        <td class="py-2 px-2">${t.substitute_name || 'Aberto'}</td>
-                        <td class="py-2 px-2">
-                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${getStatusBadge(t.status)}">
-                                ${t.status}
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        // 5. Carregar Histórico de Faltas
-        async function carregarHistoricoFaltas() {
-            try {
-                const res = await fetch(`/api/doctor/${doctorData.id}/absences`);
-                if (!res.ok) return;
-                const faltas = await res.json();
-                
-                const tbody = document.getElementById('tabela-faltas');
-                if (!faltas || faltas.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-400">Nenhuma falta registrada.</td></tr>`;
-                    return;
-                }
-
-                tbody.innerHTML = faltas.map(f => `
-                    <tr>
-                        <td class="py-2 px-2 font-medium">${formatarDataBR(f.absence_date)}</td>
-                        <td class="py-2 px-2 truncate max-w-[120px]">${f.reason}</td>
-                        <td class="py-2 px-2">
-                            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full ${getStatusBadge(f.status)}">
-                                ${f.status}
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function getStatusBadge(status) {
-            const s = (status || '').toLowerCase();
-            if (s === 'aprovado' || s === 'concluido') return 'bg-emerald-100 text-emerald-800';
-            if (s === 'rejeitado' || s === 'negado') return 'bg-rose-100 text-rose-800';
-            return 'bg-amber-100 text-amber-800';
-        }
-
-        // Modais e Submissões
-        async function abrirModalTroca() {
-            document.getElementById('modal-troca').classList.remove('hidden');
-            const select = document.getElementById('select-plantao-troca');
-            select.innerHTML = '<option value="">Carregando...</option>';
-
-            try {
-                const res = await fetch(`/api/doctor/${doctorData.id}/upcoming-shifts`);
-                const shifts = await res.json();
-                
-                if (shifts && shifts.length > 0) {
-                    select.innerHTML = shifts.map(s => 
-                        `<option value="${s.id}">${formatarDataBR(s.shift_date)} - ${s.hospital_name} (${s.start_time})</option>`
-                    ).join('');
-                } else {
-                    select.innerHTML = '<option value="">Nenhum plantão disponível para troca</option>';
-                }
-            } catch (err) {
-                select.innerHTML = '<option value="">Erro ao carregar plantões</option>';
-            }
-        }
-
-        function fecharModalTroca() {
-            document.getElementById('modal-troca').classList.add('hidden');
-        }
-
-        async function enviarSolicitacaoTroca(e) {
-            e.preventDefault();
-            const shiftId = document.getElementById('select-plantao-troca').value;
-            const substituteId = document.getElementById('select-substituto').value || null;
-            const reason = document.getElementById('motivo-troca').value;
-
-            try {
-                const response = await fetch('/api/doctor/shift-exchanges', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        requester_id: doctorData.id,
-                        shift_id: shiftId,
-                        substitute_id: substituteId,
-                        reason: reason
-                    })
-                });
-
-                if (response.ok) {
-                    alert('Solicitação de troca enviada com sucesso!');
-                    fecharModalTroca();
-                    carregarHistoricoTrocas();
-                } else {
-                    alert('Erro ao enviar solicitação.');
-                }
-            } catch (err) {
-                alert('Erro de conexão ao enviar solicitação.');
-            }
-        }
-
-        function abrirModalFalta() {
-            document.getElementById('modal-falta').classList.remove('hidden');
-        }
-
-        function fecharModalFalta() {
-            document.getElementById('modal-falta').classList.add('hidden');
-        }
-
-        async function enviarJustificativaFalta(e) {
-            e.preventDefault();
-            const dataFalta = document.getElementById('data-falta').value;
-            const motivoFalta = document.getElementById('motivo-falta').value;
-            const arquivoInput = document.getElementById('arquivo-falta');
-
-            const formData = new FormData();
-            formData.append('doctor_id', doctorData.id);
-            formData.append('absence_date', dataFalta);
-            formData.append('reason', motivoFalta);
-            if (arquivoInput.files[0]) {
-                formData.append('document', arquivoInput.files[0]);
-            }
-
-            try {
-                const response = await fetch('/api/doctor/absences', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    alert('Justificativa enviada com sucesso!');
-                    fecharModalFalta();
-                    carregarHistoricoFaltas();
-                } else {
-                    alert('Erro ao enviar justificativa.');
-                }
-            } catch (err) {
-                alert('Erro de conexão ao enviar justificativa.');
-            }
-        }
-
-        function logout() {
-            window.location.href = '/login.html';
-        }
-    </script>
+    function logout() {
+      localStorage.removeItem('doctorUser');
+      window.location.href = '/medico.html';
+    }
+  </script>
 </body>
 </html>
