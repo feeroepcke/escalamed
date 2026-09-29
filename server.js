@@ -529,6 +529,7 @@ app.get('/api/doctor/schedule', async (req, res) => {
   }
 });
 
+// Informações da Unidade para o Paciente
 app.get('/api/patient/unit-info', async (req, res) => {
   const { hospital_id } = req.query;
   const id = hospital_id || 1;
@@ -538,22 +539,37 @@ app.get('/api/patient/unit-info', async (req, res) => {
       `SELECT id, name, 
               COALESCE(address, 'Endereço não informado') as address, 
               COALESCE(phone, '(00) 0000-0000') as phone, 
-              COALESCE(opening_hours, '24 Horas') as opening_hours 
+              COALESCE(opening_hours, '24 Horas') as opening_hours,
+              COALESCE(wait_time, '~25 min') as wait_time,
+              COALESCE(demand, 'Média') as demand
        FROM hospitals WHERE id = $1`,
       [id]
     );
 
     const specsResult = await pool.query(
-      `SELECT DISTINCT s.specialty 
-       FROM shifts s 
-       WHERE s.hospital_id = $1 AND s.specialty IS NOT NULL
-       ORDER BY s.specialty ASC`,
+      `SELECT DISTINCT specialty 
+       FROM shifts 
+       WHERE hospital_id = $1 AND specialty IS NOT NULL AND specialty != ''
+       ORDER BY specialty ASC`,
       [id]
     );
 
+    const specialtiesList = specsResult.rows.map(r => ({
+      name: r.specialty,
+      doctors: 'Corpo clínico atuante na unidade'
+    }));
+
     res.json({
-      unit: unitResult.rows[0] || null,
-      specialties: specsResult.rows.map(r => r.specialty)
+      unit: unitResult.rows[0] || {
+        id,
+        name: 'Unidade Hospitalar',
+        address: 'Endereço registrado na rede principal',
+        phone: '(47) 3300-0000',
+        opening_hours: '24 Horas',
+        wait_time: '~25 min',
+        demand: 'Média'
+      },
+      specialties: specialtiesList
     });
   } catch (err) {
     console.error('Erro ao buscar dados da unidade:', err);
@@ -561,18 +577,22 @@ app.get('/api/patient/unit-info', async (req, res) => {
   }
 });
 
+// Equipe em plantão hoje (Anonimizada para o paciente)
 app.get('/api/patient/on-duty-team', async (req, res) => {
   const { hospital_id } = req.query;
   const id = hospital_id || 1;
 
   try {
     const teamResult = await pool.query(
-      `SELECT d.name as doctor_name, d.crm, s.sector, s.start_time, s.end_time, s.specialty
+      `SELECT 
+         COALESCE(s.specialty, 'Atendimento Geral') as category,
+         s.sector,
+         COUNT(s.doctor_id)::int as count
        FROM shifts s
-       JOIN doctors d ON s.doctor_id = d.id
        WHERE s.hospital_id = $1 
          AND s.shift_date = CURRENT_DATE
-       ORDER BY s.start_time ASC`,
+         AND s.doctor_id IS NOT NULL
+       GROUP BY s.specialty, s.sector`,
       [id]
     );
 
@@ -580,6 +600,62 @@ app.get('/api/patient/on-duty-team', async (req, res) => {
   } catch (err) {
     console.error('Erro ao buscar equipe de plantão:', err);
     res.status(500).json({ error: 'Erro ao carregar equipe de plantão.' });
+  }
+});
+
+// Cronograma para o Gráfico de Gantt do Paciente
+app.get('/api/patient/gantt-schedule', async (req, res) => {
+  const { hospital_id } = req.query;
+  const id = hospital_id || 1;
+
+  try {
+    const result = await pool.query(
+      `SELECT 
+         id,
+         COALESCE(specialty, 'Clínica Geral') as specialty,
+         sector,
+         TO_CHAR(start_time, 'HH24:MI') as start_time,
+         TO_CHAR(end_time, 'HH24:MI') as end_time,
+         EXTRACT(HOUR FROM start_time) as start_hour,
+         EXTRACT(HOUR FROM end_time) as end_hour
+       FROM shifts
+       WHERE hospital_id = $1 
+         AND shift_date = CURRENT_DATE
+         AND doctor_id IS NOT NULL
+       ORDER BY start_time ASC`,
+      [id]
+    );
+
+    // Converte os horários em percentuais para o posicionamento da barra de Gantt
+    const ganttData = result.rows.map(row => {
+      const startH = parseFloat(row.start_hour) || 7;
+      let endH = parseFloat(row.end_hour) || 19;
+      
+      // Ajuste para turnos que viram a noite
+      if (endH <= startH) endH += 24;
+
+      // Considerando janela total de 24h a partir das 07:00
+      const startRel = (startH >= 7 ? startH - 7 : startH + 17);
+      const duration = endH - startH;
+
+      const startPercent = Math.min(100, Math.max(0, (startRel / 24) * 100));
+      const widthPercent = Math.min(100 - startPercent, Math.max(5, (duration / 24) * 100));
+
+      return {
+        id: row.id,
+        specialty: row.specialty,
+        sector: row.sector,
+        start_time: row.start_time,
+        end_time: row.end_time,
+        start_percent: Math.round(startPercent),
+        width_percent: Math.round(widthPercent)
+      };
+    });
+
+    res.json(ganttData);
+  } catch (err) {
+    console.error('Erro ao buscar cronograma de Gantt do paciente:', err);
+    res.status(500).json({ error: 'Erro ao carregar cronograma visual.' });
   }
 });
 
@@ -741,7 +817,7 @@ app.get('/api/manager/doctors-preferences', async (req, res) => {
 
 // Visão semanal de faltas para o calendário e notificações de 48h
 app.get('/api/manager/absences/weekly', async (req, res) => {
-  const { start_date, end_date } = req.query; // Ex: 2026-09-21 e 2026-09-27
+  const { start_date, end_date } = req.query;
   try {
     const result = await pool.query(
       `SELECT da.id, da.absence_date, da.reason, da.document_url, da.status, da.created_at,
@@ -764,7 +840,6 @@ app.get('/api/manager/absences/weekly', async (req, res) => {
     res.status(500).json({ error: 'Erro ao carregar calendário de faltas.' });
   }
 });
-
 
 // Inicialização do Servidor
 app.listen(PORT, () => {
