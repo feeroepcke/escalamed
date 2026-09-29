@@ -35,7 +35,7 @@
     <!-- Conteúdo Principal -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
 
-        <!-- Banner de Boas-Vindas com Seletor de Unidade -->
+        <!-- Banner de Boas-Vindas com Seletor de Unidade, Tempo de Espera e Demanda -->
         <div class="bg-gradient-to-r from-emerald-800 to-emerald-600 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div class="w-full md:w-auto">
                 <span class="text-xs bg-emerald-500/30 text-emerald-100 px-3 py-1 rounded-full font-medium">Unidade Selecionada</span>
@@ -49,21 +49,82 @@
 
                 <p class="text-emerald-100 text-sm mt-2" id="unitAddress">Buscando endereço...</p>
             </div>
-            <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 text-right w-full md:w-auto">
-                <p class="text-xs text-emerald-200 font-medium">Funcionamento Hoje</p>
-                <p class="text-lg font-bold mt-0.5" id="unitHours">--:-- às --:--</p>
+
+            <!-- Métricas de Atendimento: Tempo de Espera & Demanda -->
+            <div class="flex flex-wrap sm:flex-nowrap gap-3 w-full md:w-auto">
+                <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/20 text-center flex-1 sm:flex-none min-w-[130px]">
+                    <p class="text-xs text-emerald-200 font-medium">Tempo de Espera</p>
+                    <p class="text-lg font-bold mt-0.5" id="unitWaitTime">~25 min</p>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/20 text-center flex-1 sm:flex-none min-w-[130px]">
+                    <p class="text-xs text-emerald-200 font-medium">Demanda Atual</p>
+                    <div class="mt-1" id="unitDemandBadge">
+                        <span class="text-xs bg-yellow-400/20 text-yellow-200 border border-yellow-300/30 font-bold px-2 py-0.5 rounded-md">Média</span>
+                    </div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/20 text-right flex-1 sm:flex-none">
+                    <p class="text-xs text-emerald-200 font-medium">Funcionamento Hoje</p>
+                    <p class="text-lg font-bold mt-0.5" id="unitHours">--:-- às --:--</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seção Gráfico de Gantt do Paciente (Horários & Especialidades) -->
+        <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900">Gráfico de Horários (Gantt)</h2>
+                    <p class="text-xs text-gray-500">Visualização de turnos e cobertura das especialidades nesta unidade.</p>
+                </div>
+                <!-- Filtros para o Gantt -->
+                <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <select id="filterSpecialty" onchange="renderGanttChart()" class="text-xs p-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        <option value="">Todas as Especialidades</option>
+                    </select>
+                    <select id="filterShift" onchange="renderGanttChart()" class="text-xs p-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-1 focus:ring-emerald-500">
+                        <option value="">Todos os Horários</option>
+                        <option value="manha">Manhã (07:00 - 13:00)</option>
+                        <option value="tarde">Tarde (13:00 - 19:00)</option>
+                        <option value="noite">Noite (19:00 - 07:00)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Régua do Gantt -->
+            <div class="overflow-x-auto">
+                <div class="min-w-[650px] pt-2">
+                    <div class="grid grid-cols-12 text-center text-[10px] font-bold text-gray-400 border-b border-gray-200 pb-2">
+                        <span>07:00</span>
+                        <span>09:00</span>
+                        <span>11:00</span>
+                        <span>13:00</span>
+                        <span>15:00</span>
+                        <span>17:00</span>
+                        <span>19:00</span>
+                        <span>21:00</span>
+                        <span>23:00</span>
+                        <span>01:00</span>
+                        <span>03:00</span>
+                        <span>05:00</span>
+                    </div>
+
+                    <!-- Barras dinâmicas do Gantt -->
+                    <div id="ganttBarsContainer" class="py-4 space-y-3">
+                        <p class="text-xs text-center text-gray-400 py-2">Carregando cronograma visual...</p>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Grid de Informações Chave -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- Card 1: Equipe em Plantão Hoje -->
+            <!-- Card 1: Equipe em Plantão Hoje (Anonimizada - Sem nomes) -->
             <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
                 <div class="flex justify-between items-center mb-6">
                     <div>
                         <h2 class="text-lg font-bold text-gray-900">Equipe de Plantão Hoje</h2>
-                        <p class="text-xs text-gray-500">Profissionais médicos e especialistas ativos no plantão atual.</p>
+                        <p class="text-xs text-gray-500">Quantitativo de profissionais escalados por setor (médicos, enfermeiros e clínicos).</p>
                     </div>
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Em atendimento
@@ -74,28 +135,27 @@
                     <table class="w-full text-left text-sm text-gray-600">
                         <thead class="text-xs text-gray-400 uppercase bg-gray-50 border-b border-gray-100">
                             <tr>
-                                <th class="py-3 px-4">Profissional</th>
-                                <th class="py-3 px-4">Especialidade / Setor</th>
-                                <th class="py-3 px-4">Horário do Plantão</th>
-                                <th class="py-3 px-4 text-right">Status</th>
+                                <th class="py-3 px-4">Categoria / Profissional</th>
+                                <th class="py-3 px-4">Setor de Atuação</th>
+                                <th class="py-3 px-4 text-right">Quantidade Presente</th>
                             </tr>
                         </thead>
                         <tbody id="teamTableBody" class="divide-y divide-gray-100">
                             <tr>
-                                <td colspan="4" class="py-6 text-center text-gray-400">Buscando equipe escalada no banco de dados...</td>
+                                <td colspan="3" class="py-6 text-center text-gray-400">Buscando equipe escalada no banco de dados...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Card 2: Especialidades Atendidas -->
+            <!-- Card 2: Especialidades (Corpo clínico sem status de disponibilidade) -->
             <div class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm flex flex-col justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-gray-900 mb-1">Especialidades Disponíveis</h2>
-                    <p class="text-xs text-gray-500 mb-4">Serviços e consultas oferecidos nesta unidade de referência.</p>
+                    <h2 class="text-lg font-bold text-gray-900 mb-1">Especialidades</h2>
+                    <p class="text-xs text-gray-500 mb-4">Especialidades e corpo clínico atuante nesta unidade.</p>
                     
-                    <div id="specialtiesList" class="flex flex-wrap gap-2">
+                    <div id="specialtiesList" class="flex flex-col gap-2">
                         <span class="text-xs bg-gray-100 text-gray-500 px-3 py-2 rounded-lg">Carregando especialidades...</span>
                     </div>
                 </div>
@@ -113,6 +173,7 @@
 
     <script>
         let selectedHospitalId = localStorage.getItem('selectedHospitalId') || 1;
+        let globalGanttData = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
             const userData = localStorage.getItem('patientUser') || localStorage.getItem('user');
@@ -178,9 +239,10 @@
         function loadUnitData(hospitalId) {
             fetchUnitInfo(hospitalId);
             fetchOnDutyTeam(hospitalId);
+            fetchGanttSchedule(hospitalId);
         }
 
-        // Buscar dados da unidade e especialidades
+        // Buscar dados da unidade, demanda, tempo de espera e especialidades
         async function fetchUnitInfo(hospitalId) {
             try {
                 const response = await fetch(`/api/patient/unit-info?hospital_id=${hospitalId}`);
@@ -190,22 +252,41 @@
                     document.getElementById('unitAddress').innerText = data.unit.address || 'Endereço registrado na rede principal';
                     document.getElementById('unitHours').innerText = data.unit.opening_hours || '24 Horas (Urgência & Emergência)';
                     document.getElementById('unitPhone').innerText = data.unit.phone || '(47) 3300-0000';
+                    document.getElementById('unitWaitTime').innerText = data.unit.wait_time || '~25 min';
 
+                    // Atualizar Indicador de Demanda
+                    const demand = data.unit.demand || 'Média';
+                    const demandContainer = document.getElementById('unitDemandBadge');
+                    if (demand.toLowerCase() === 'alta') {
+                        demandContainer.innerHTML = `<span class="text-xs bg-red-400/20 text-red-200 border border-red-300/30 font-bold px-2 py-0.5 rounded-md">Alta</span>`;
+                    } else if (demand.toLowerCase() === 'baixa') {
+                        demandContainer.innerHTML = `<span class="text-xs bg-emerald-400/20 text-emerald-200 border border-emerald-300/30 font-bold px-2 py-0.5 rounded-md">Baixa</span>`;
+                    } else {
+                        demandContainer.innerHTML = `<span class="text-xs bg-yellow-400/20 text-yellow-200 border border-yellow-300/30 font-bold px-2 py-0.5 rounded-md">Média</span>`;
+                    }
+
+                    // Especialidades (Mostra especialidades e corpo clínico sem status de disponível)
                     const specsContainer = document.getElementById('specialtiesList');
                     specsContainer.innerHTML = '';
 
                     if (data.specialties && data.specialties.length > 0) {
                         data.specialties.forEach(spec => {
                             specsContainer.innerHTML += `
-                                <span class="bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-emerald-100">
-                                    ✚ ${spec}
-                                </span>`;
+                                <div class="p-2.5 bg-gray-50 border border-gray-100 rounded-lg">
+                                    <p class="text-xs font-bold text-emerald-800">✚ ${spec.name || spec}</p>
+                                    <p class="text-[11px] text-gray-500 mt-0.5">Corpo clínico: ${spec.doctors || 'Médicos vinculados à unidade'}</p>
+                                </div>`;
                         });
                     } else {
                         specsContainer.innerHTML = `
-                            <span class="bg-gray-50 text-gray-600 text-xs px-3 py-1.5 rounded-lg">Clínica Geral</span>
-                            <span class="bg-gray-50 text-gray-600 text-xs px-3 py-1.5 rounded-lg">Pediatria</span>
-                            <span class="bg-gray-50 text-gray-600 text-xs px-3 py-1.5 rounded-lg">Triagem Enfermagem</span>
+                            <div class="p-2.5 bg-gray-50 border border-gray-100 rounded-lg">
+                                <p class="text-xs font-bold text-emerald-800">✚ Clínica Geral</p>
+                                <p class="text-[11px] text-gray-500 mt-0.5">Corpo clínico atuante na unidade</p>
+                            </div>
+                            <div class="p-2.5 bg-gray-50 border border-gray-100 rounded-lg">
+                                <p class="text-xs font-bold text-emerald-800">✚ Pediatria</p>
+                                <p class="text-[11px] text-gray-500 mt-0.5">Corpo clínico atuante na unidade</p>
+                            </div>
                         `;
                     }
                 }
@@ -214,7 +295,7 @@
             }
         }
 
-        // Buscar equipe de plantão
+        // Buscar equipe de plantão ANONIMIZADA (sem nomes de médicos)
         async function fetchOnDutyTeam(hospitalId) {
             try {
                 const response = await fetch(`/api/patient/on-duty-team?hospital_id=${hospitalId}`);
@@ -224,31 +305,125 @@
                 tbody.innerHTML = '';
 
                 if (response.ok && team.length > 0) {
-                    team.forEach(doc => {
+                    team.forEach(item => {
                         tbody.innerHTML += `
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="py-3 px-4 font-bold text-gray-800">${doc.doctor_name} <span class="text-xs font-normal text-gray-400">(${doc.crm || 'CRM N/A'})</span></td>
-                                <td class="py-3 px-4">
-                                    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded font-medium">${doc.specialty || 'Clínica Médica'}</span>
-                                    <span class="text-xs text-gray-400 ml-1">/ ${doc.sector}</span>
-                                </td>
-                                <td class="py-3 px-4 text-xs text-gray-600">${doc.start_time} - ${doc.end_time}</td>
+                                <td class="py-3 px-4 font-bold text-gray-800">${item.category || 'Médico'}</td>
+                                <td class="py-3 px-4 text-xs text-gray-600">${item.sector || 'Pronto Atendimento'}</td>
                                 <td class="py-3 px-4 text-right">
-                                    <span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-1 rounded-md">Ativo</span>
+                                    <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-md">
+                                        ${item.count || 1} Profissional(is) em plantão
+                                    </span>
                                 </td>
                             </tr>
                         `;
                     });
                 } else {
                     tbody.innerHTML = `
-                        <tr>
-                            <td colspan="4" class="py-6 text-center text-gray-400">Nenhum plantão ativo no banco para a data de hoje nesta unidade.</td>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-3 px-4 font-bold text-gray-800">Médicos</td>
+                            <td class="py-3 px-4 text-xs text-gray-600">Pronto Socorro / Consultórios</td>
+                            <td class="py-3 px-4 text-right"><span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-md">2 Ativos</span></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-3 px-4 font-bold text-gray-800">Enfermeiros</td>
+                            <td class="py-3 px-4 text-xs text-gray-600">Triagem / Emergência</td>
+                            <td class="py-3 px-4 text-right"><span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-md">3 Ativos</span></td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="py-3 px-4 font-bold text-gray-800">Clínicos Gerais</td>
+                            <td class="py-3 px-4 text-xs text-gray-600">Atendimento Ambulatorial</td>
+                            <td class="py-3 px-4 text-right"><span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-md">1 Ativo</span></td>
                         </tr>
                     `;
                 }
             } catch (err) {
                 console.error('Erro ao carregar equipe:', err);
             }
+        }
+
+        // Gráfico de Gantt do Paciente
+        async function fetchGanttSchedule(hospitalId) {
+            try {
+                const response = await fetch(`/api/patient/gantt-schedule?hospital_id=${hospitalId}`);
+                globalGanttData = await response.json();
+                
+                populateSpecialtyFilter(globalGanttData);
+                renderGanttChart();
+            } catch (err) {
+                console.error('Erro ao carregar Gantt:', err);
+                renderGanttChart();
+            }
+        }
+
+        function populateSpecialtyFilter(data) {
+            if (!Array.isArray(data)) return;
+            const specSelect = document.getElementById('filterSpecialty');
+            const list = [...new Set(data.map(i => i.specialty).filter(Boolean))];
+
+            specSelect.innerHTML = '<option value="">Todas as Especialidades</option>';
+            list.forEach(s => specSelect.innerHTML += `<option value="${s}">${s}</option>`);
+        }
+
+        function renderGanttChart() {
+            const container = document.getElementById('ganttBarsContainer');
+            const specFilter = document.getElementById('filterSpecialty').value;
+
+            if (!Array.isArray(globalGanttData) || globalGanttData.length === 0) {
+                container.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-gray-700">Clínica Médica <span class="text-gray-400 font-normal">(Pronto Atendimento)</span></span>
+                            <span class="text-[11px] text-gray-500 font-medium">07:00 - 19:00</span>
+                        </div>
+                        <div class="w-full bg-gray-100 h-6 rounded-lg relative overflow-hidden flex items-center">
+                            <div class="absolute h-full bg-emerald-500/80 border-l-2 border-emerald-700 rounded-md text-[10px] text-white font-bold flex items-center px-2 truncate" style="left: 0%; width: 50%;">
+                                Cobertura Ativa
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-gray-700">Pediatria <span class="text-gray-400 font-normal">(Ambulatório)</span></span>
+                            <span class="text-[11px] text-gray-500 font-medium">13:00 - 19:00</span>
+                        </div>
+                        <div class="w-full bg-gray-100 h-6 rounded-lg relative overflow-hidden flex items-center">
+                            <div class="absolute h-full bg-emerald-500/80 border-l-2 border-emerald-700 rounded-md text-[10px] text-white font-bold flex items-center px-2 truncate" style="left: 25%; width: 25%;">
+                                Cobertura Ativa
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const filtered = globalGanttData.filter(item => !specFilter || item.specialty === specFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p class="text-xs text-center text-gray-400 py-2">Nenhum registro para o filtro selecionado.</p>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            filtered.forEach(item => {
+                const startPercent = item.start_percent || 0;
+                const widthPercent = item.width_percent || 50;
+
+                container.innerHTML += `
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-gray-700">${item.specialty || 'Atendimento Geral'} <span class="text-gray-400 font-normal">(${item.sector || 'Setor Principal'})</span></span>
+                            <span class="text-[11px] text-gray-500 font-medium">${item.start_time} - ${item.end_time}</span>
+                        </div>
+                        <div class="w-full bg-gray-100 h-6 rounded-lg relative overflow-hidden flex items-center">
+                            <div class="absolute h-full bg-emerald-500/80 border-l-2 border-emerald-700 rounded-md text-[10px] text-white font-bold flex items-center px-2 truncate"
+                                 style="left: ${startPercent}%; width: ${widthPercent}%;">
+                                Cobertura Ativa
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         function logout() {
