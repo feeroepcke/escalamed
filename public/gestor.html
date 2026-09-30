@@ -6,6 +6,8 @@
     <title>EscalaMed — Portal do Gestor</title>
     <link rel="icon" type="image/png" href="/assets/favicon.png?v=latest">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Script Oficial do Google Sign-In -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
     <!-- Cabeçalho -->
@@ -66,6 +68,23 @@
                     </div>
 
                     <button type="submit" id="btnLogin" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-4">Entrar no Painel de Gestão</button>
+
+                    <!-- Divisor Visual -->
+                    <div class="relative my-4 flex items-center justify-center">
+                        <div class="border-t border-gray-200 w-full"></div>
+                        <span class="bg-white px-3 text-xs text-gray-400 font-medium absolute">ou</span>
+                    </div>
+
+                    <!-- Botão Login Google -->
+                    <button type="button" onclick="loginGoogle()" class="w-full border border-gray-300 bg-white text-gray-700 font-medium py-3 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm shadow-sm">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        Entrar com o Google
+                    </button>
                 </form>
 
                 <!-- Formulário de Cadastro do Gestor -->
@@ -105,8 +124,58 @@
                     </div>
 
                     <button type="submit" id="btnRegister" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-4">Criar conta de gestor</button>
+
+                    <!-- Divisor Visual -->
+                    <div class="relative my-4 flex items-center justify-center">
+                        <div class="border-t border-gray-200 w-full"></div>
+                        <span class="bg-white px-3 text-xs text-gray-400 font-medium absolute">ou</span>
+                    </div>
+
+                    <!-- Botão Cadastrar Google -->
+                    <button type="button" onclick="loginGoogle()" class="w-full border border-gray-300 bg-white text-gray-700 font-medium py-3 rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm shadow-sm">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        Cadastrar com o Google
+                    </button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Onboarding Google (Complemento de cadastro do Gestor) -->
+    <div id="modalGoogleOnboarding" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-gray-100">
+            <h3 class="text-lg font-bold text-gray-900 mb-1">Quase lá! Complete seu perfil</h3>
+            <p class="text-xs text-gray-500 mb-4">Autenticado com sucesso via Google. Complete os dados da sua instituição para acessar o painel de gestão.</p>
+            
+            <form id="formGoogleOnboarding" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Nome Completo</label>
+                    <input type="text" id="googleName" class="w-full border border-gray-200 bg-gray-50 rounded-xl p-3 text-sm" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">E-mail corporativo</label>
+                    <input type="email" id="googleEmail" class="w-full border border-gray-200 bg-gray-50 rounded-xl p-3 text-sm" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Unidade / Hospital *</label>
+                    <input type="text" id="googleHospital" placeholder="Ex: Hospital Central" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Cargo *</label>
+                    <select id="googleRole" class="w-full border border-gray-300 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald-500 bg-white" required>
+                        <option value="Coordenador(a)">Coordenador(a)</option>
+                        <option value="Diretor(a) Médico">Diretor(a) Médico</option>
+                        <option value="Administrador(a)">Administrador(a)</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="btnSaveGoogleOnboarding" class="w-full bg-emerald-600 text-white font-medium py-3 rounded-xl hover:bg-emerald-700 transition mt-2">Finalizar Cadastro</button>
+            </form>
         </div>
     </div>
 
@@ -130,7 +199,80 @@
             }
         }
 
-        // Cadastro do Gestor
+        // --- INTEGRAÇÃO GOOGLE ---
+        function loginGoogle() {
+            google.accounts.id.initialize({
+                client_id: "SEU_GOOGLE_CLIENT_ID_AQUI.apps.googleusercontent.com",
+                callback: handleGoogleResponse
+            });
+            google.accounts.id.prompt();
+        }
+
+        async function handleGoogleResponse(response) {
+            try {
+                const res = await fetch('/api/auth/google/manager', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: response.credential })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    if (data.needsOnboarding) {
+                        document.getElementById('googleName').value = data.googleData.name;
+                        document.getElementById('googleEmail').value = data.googleData.email;
+                        document.getElementById('modalGoogleOnboarding').classList.remove('hidden');
+                    } else {
+                        localStorage.setItem('managerUser', JSON.stringify(data.user));
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                        window.location.href = '/dashboard-gestor.html';
+                    }
+                } else {
+                    alert(data.error || 'Erro na autenticação com o Google.');
+                }
+            } catch (err) {
+                alert('Erro de comunicação com o servidor.');
+            }
+        }
+
+        // Salvar dados do Onboarding Google (Hospital e Cargo)
+        document.getElementById('formGoogleOnboarding').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSaveGoogleOnboarding');
+            btn.innerText = 'Salvando...';
+            btn.disabled = true;
+
+            const name = document.getElementById('googleName').value;
+            const email = document.getElementById('googleEmail').value;
+            const hospital = document.getElementById('googleHospital').value;
+            const role = document.getElementById('googleRole').value;
+
+            try {
+                const res = await fetch('/api/auth/google/manager/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, hospital, role })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('managerUser', JSON.stringify(data.user));
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    window.location.href = '/dashboard-gestor.html';
+                } else {
+                    alert(data.error || 'Erro ao concluir cadastro.');
+                }
+            } catch (err) {
+                alert('Erro de conexão.');
+            } finally {
+                btn.innerText = 'Finalizar Cadastro';
+                btn.disabled = false;
+            }
+        });
+
+        // Cadastro do Gestor Manual
         document.getElementById('formRegister').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnRegister');
@@ -165,7 +307,7 @@
             }
         });
 
-        // Login do Gestor
+        // Login do Gestor Manual
         document.getElementById('formLogin').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnLogin');
