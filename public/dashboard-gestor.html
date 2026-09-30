@@ -25,6 +25,13 @@
   </script>
   <!-- Ícones FontAwesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .gantt-grid {
+      display: grid;
+      grid-template-columns: 200px repeat(24, minmax(45px, 1fr));
+      overflow-x: auto;
+    }
+  </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
 
@@ -100,7 +107,7 @@
 
     <!-- Conteúdo Central Dinâmico -->
     <main class="flex-1 p-8 overflow-y-auto">
-      <div class="max-w-7xl mx-auto">
+      <div class="max-w-7xl mx-auto space-y-6">
 
         <!-- VISÃO GERAL -->
         <section id="sec-visao-geral" class="space-y-6">
@@ -110,7 +117,7 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <!-- Card 1: Cobertura da Escala -->
+            <!-- Card 1 -->
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase">Cobertura da Escala</p>
@@ -122,7 +129,7 @@
               </div>
             </div>
 
-            <!-- Card 2: Trocas Pendentes -->
+            <!-- Card 2 -->
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase">Trocas Pendentes</p>
@@ -134,7 +141,7 @@
               </div>
             </div>
 
-            <!-- Card 3: Plantões Vagos -->
+            <!-- Card 3 -->
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase">Plantões Vagos</p>
@@ -146,7 +153,7 @@
               </div>
             </div>
 
-            <!-- Card 4: Médicos Ativos -->
+            <!-- Card 4 -->
             <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-center justify-between">
               <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase">Médicos no Setor</p>
@@ -181,7 +188,7 @@
           <div class="flex justify-between items-center">
             <div>
               <h1 class="text-2xl font-bold text-gray-900">Gestão Geral da Escala</h1>
-              <p class="text-sm text-gray-500">Visão completa dos plantões e horários cadastrados na unidade.</p>
+              <p class="text-sm text-gray-500">Monte plantões, visualize o calendário hospitalar e o gráfico de Gantt com médicos à esquerda.</p>
             </div>
             <button onclick="abrirModalNovoPlantao()" class="bg-brand hover:bg-brand-dark text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-2">
               <i class="fa-solid fa-plus"></i>
@@ -189,7 +196,50 @@
             </button>
           </div>
 
-          <!-- Visão em Grade Semanal / Diária -->
+          <!-- GRÁFICO DE GANTT DOS PLANTÕES -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+              <div>
+                <h3 class="text-base font-bold text-gray-800"><i class="fa-solid fa-chart-gantt text-brand mr-2"></i>Gráfico de Gantt dos Plantões</h3>
+                <p class="text-xs text-gray-500">Linha do tempo diária com médicos posicionados no eixo vertical à esquerda.</p>
+              </div>
+              <!-- Filtros do Gantt -->
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="date" id="ganttDate" onchange="carregarGantt()" class="bg-gray-50 border border-gray-200 text-xs rounded-lg p-2 font-medium">
+                <select id="ganttFilterSector" onchange="carregarGantt()" class="bg-gray-50 border border-gray-200 text-xs rounded-lg p-2 font-medium">
+                  <option value="">Todos os Setores</option>
+                </select>
+                <select id="ganttFilterDoctor" onchange="carregarGantt()" class="bg-gray-50 border border-gray-200 text-xs rounded-lg p-2 font-medium">
+                  <option value="">Todos os Médicos</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Visualizador Gantt Scrollável -->
+            <div id="ganttContainer" class="border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+              <!-- Renderizado via JS -->
+            </div>
+          </div>
+
+          <!-- CALENDÁRIO PARA MONTAGEM DE ESCALA DO HOSPITAL -->
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 class="text-base font-bold text-gray-800"><i class="fa-regular fa-calendar-check text-brand mr-2"></i>Calendário de Montagem da Escala</h3>
+              <div class="flex items-center space-x-2">
+                <button onclick="mudarMesCalendario(-1)" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-bold"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="mesAnoCalendario" class="text-xs font-bold text-gray-700 min-w-[120px] text-center">--</span>
+                <button onclick="mudarMesCalendario(1)" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-bold"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs text-gray-400 uppercase py-2">
+              <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+            </div>
+            <div id="calendarGrid" class="grid grid-cols-7 gap-2">
+              <!-- Renderizado via JS -->
+            </div>
+          </div>
+
+          <!-- Visão Semanal Rápida -->
           <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
             <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Visão Rápida Semanal</h3>
             <div id="gridEscalaGestor" class="grid grid-cols-1 md:grid-cols-7 gap-3">
@@ -215,7 +265,7 @@
                   </tr>
                 </thead>
                 <tbody id="lista-plantoes">
-                  <!-- Preenchido via JavaScript -->
+                  <!-- Preenchido via JS -->
                 </tbody>
               </table>
             </div>
@@ -253,18 +303,9 @@
         <section id="sec-atestados" class="space-y-6 hidden">
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Controle de Faltas e Atestados</h1>
-            <p class="text-sm text-gray-500">Calendário semanal e gerenciamento de justificativas dos médicos.</p>
+            <p class="text-sm text-gray-500">Acompanhamento das ausências, atestados médicos anexados e regra de 48h.</p>
           </div>
 
-          <!-- Calendário Semanal de Faltas -->
-          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 space-y-4">
-            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Status Semanal das Faltas</h3>
-            <div id="gridSemanaFaltas" class="grid grid-cols-1 md:grid-cols-7 gap-3">
-              <!-- Preenchido via JS -->
-            </div>
-          </div>
-
-          <!-- Lista de Ocorrências e Atestados -->
           <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4">
             <h3 class="text-base font-bold text-gray-800">Detalhamento de Ausências e Documentos</h3>
             <div id="lista-faltas-detalhes" class="space-y-3">
@@ -374,6 +415,7 @@
     }
 
     const HOSPITAL_ID = gestorData.hospital_id || 1;
+    let dataCalendarioAtual = new Date();
 
     document.addEventListener('DOMContentLoaded', () => {
       if (gestorData && gestorData.name) {
@@ -382,8 +424,10 @@
         document.getElementById('userInitials').innerText = initials;
       }
 
+      const ganttInput = document.getElementById('ganttDate');
+      if (ganttInput) ganttInput.value = new Date().toISOString().split('T')[0];
+
       carregarHospitais();
-      carregarPlantoes();
       carregarMedicos();
     });
 
@@ -432,6 +476,8 @@
       carregarSolicitacoes();
       carregarFaltasSemana();
       carregarPreferenciasMedicos();
+      carregarGantt();
+      renderizarCalendario();
     }
 
     async function carregarVisaoGeralGestor() {
@@ -444,7 +490,10 @@
 
         const data = await res.json();
         document.getElementById('cardPlantoesVagos').innerText = data.openShiftsCount || 0;
-        document.getElementById('cardMedicosAtivos').innerText = '12';
+        
+        const resMed = await fetch(`/api/manager/doctors-preferences?hospital_id=${hospitalId}`);
+        const medicos = await resMed.json();
+        document.getElementById('cardMedicosAtivos').innerText = Array.isArray(medicos) ? medicos.length : '0';
       } catch (err) {
         console.error('Erro ao carregar visão geral do gestor:', err);
       }
@@ -500,6 +549,8 @@
         document.getElementById('sec-visao-geral').classList.remove('hidden');
       } else if (aba === 'escala-geral') {
         document.getElementById('sec-escala-geral').classList.remove('hidden');
+        carregarGantt();
+        renderizarCalendario();
       } else if (aba === 'aprovacoes') {
         document.getElementById('sec-aprovacoes').classList.remove('hidden');
         carregarSolicitacoes();
@@ -521,8 +572,10 @@
       window.location.href = '/index.html';
     }
 
-    // Modal Control
-    function abrirModalNovoPlantao() {
+    function abrirModalNovoPlantao(dataPreDefinida) {
+      if (dataPreDefinida) {
+        document.getElementById('shift_date').value = dataPreDefinida;
+      }
       document.getElementById('modalNovoPlantao').classList.remove('hidden');
       document.getElementById('modalNovoPlantao').classList.add('flex');
     }
@@ -530,6 +583,142 @@
     function fecharModalNovoPlantao() {
       document.getElementById('modalNovoPlantao').classList.add('hidden');
       document.getElementById('modalNovoPlantao').classList.remove('flex');
+    }
+
+    // ==========================================
+    // GRÁFICO DE GANTT (MÉDICOS À ESQUERDA)
+    // ==========================================
+    async function carregarGantt() {
+      const container = document.getElementById('ganttContainer');
+      if (!container) return;
+
+      const hospitalId = document.getElementById('hospitalSelect')?.value || HOSPITAL_ID;
+      const dataFiltro = document.getElementById('ganttDate')?.value || new Date().toISOString().split('T')[0];
+      const sectorFiltro = document.getElementById('ganttFilterSector')?.value || '';
+      const doctorFiltro = document.getElementById('ganttFilterDoctor')?.value || '';
+
+      try {
+        const res = await fetch(`/api/manager/shifts?hospital_id=${hospitalId}`);
+        const shifts = await res.json();
+
+        const resMed = await fetch(`/api/manager/doctors-preferences?hospital_id=${hospitalId}`);
+        const medicos = await resMed.json();
+
+        // Atualizar filtros
+        const selectSector = document.getElementById('ganttFilterSector');
+        const selectDoctor = document.getElementById('ganttFilterDoctor');
+        if (selectSector && selectSector.options.length <= 1) {
+          const setores = [...new Set(shifts.map(s => s.sector))];
+          setores.forEach(sec => selectSector.innerHTML += `<option value="${sec}">${sec}</option>`);
+        }
+        if (selectDoctor && selectDoctor.options.length <= 1) {
+          medicos.forEach(m => selectDoctor.innerHTML += `<option value="${m.id}">${m.name}</option>`);
+        }
+
+        // Filtrar plantões da data escolhida
+        let plantoesDia = shifts.filter(s => s.shift_date.startsWith(dataFiltro));
+        if (sectorFiltro) plantoesDia = plantoesDia.filter(s => s.sector === sectorFiltro);
+        if (doctorFiltro) plantoesDia = plantoesDia.filter(s => String(s.doctor_id) === String(doctorFiltro));
+
+        let htmlHeader = `<div class="gantt-grid bg-gray-200 border-b border-gray-300 text-[11px] font-bold text-gray-700 py-2">
+          <div class="px-3">Profissional / Médico</div>`;
+        for (let h = 0; h < 24; h++) {
+          htmlHeader += `<div class="text-center border-l border-gray-300">${String(h).padStart(2, '0')}:00</div>`;
+        }
+        htmlHeader += `</div>`;
+
+        let htmlRows = '';
+        if (medicos.length === 0) {
+          htmlRows = `<div class="p-6 text-center text-xs text-gray-500">Nenhum médico cadastrado para visualização no Gantt.</div>`;
+        } else {
+          medicos.forEach(m => {
+            const plantoesMedico = plantoesDia.filter(s => s.doctor_id === m.id);
+
+            htmlRows += `<div class="gantt-grid border-b border-gray-200 items-center bg-white hover:bg-gray-50 min-h-[45px]">
+              <div class="px-3 py-2 text-xs font-bold text-gray-800 border-r border-gray-200 truncate" title="${m.name}">
+                ${m.name} <br><span class="text-[10px] font-normal text-gray-400">CRM ${m.crm}</span>
+              </div>`;
+
+            for (let h = 0; h < 24; h++) {
+              const plantaoHora = plantoesMedico.find(p => {
+                const horaInicio = parseInt(p.start_time.split(':')[0]);
+                const horaFim = parseInt(p.end_time.split(':')[0]);
+                return h >= horaInicio && h < horaFim;
+              });
+
+              if (plantaoHora) {
+                htmlRows += `<div class="bg-brand text-white text-[10px] p-1 font-semibold border-r border-emerald-600 flex items-center justify-center overflow-hidden" title="${plantaoHora.sector} (${plantaoHora.start_time.slice(0,5)}-${plantaoHora.end_time.slice(0,5)})">
+                  ${h === parseInt(plantaoHora.start_time.split(':')[0]) ? plantaoHora.sector : ''}
+                </div>`;
+              } else {
+                htmlRows += `<div class="border-r border-gray-100 h-full"></div>`;
+              }
+            }
+            htmlRows += `</div>`;
+          });
+        }
+
+        container.innerHTML = htmlHeader + htmlRows;
+      } catch (err) {
+        console.error('Erro ao montar Gantt:', err);
+      }
+    }
+
+    // ==========================================
+    // CALENDÁRIO INTERATIVO DO GESTOR
+    // ==========================================
+    async function renderizarCalendario() {
+      const grid = document.getElementById('calendarGrid');
+      const labelMesAno = document.getElementById('mesAnoCalendario');
+      if (!grid || !labelMesAno) return;
+
+      const ano = dataCalendarioAtual.getFullYear();
+      const mes = dataCalendarioAtual.getMonth();
+
+      const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+      labelMesAno.innerText = `${nomesMeses[mes]} ${ano}`;
+
+      const primeiroDia = new Date(ano, mes, 1).getDay();
+      const totalDias = new Date(ano, mes + 1, 0).getDate();
+
+      const hospitalId = document.getElementById('hospitalSelect')?.value || HOSPITAL_ID;
+      let shifts = [];
+      try {
+        const res = await fetch(`/api/manager/shifts?hospital_id=${hospitalId}`);
+        shifts = await res.json();
+      } catch (e) {}
+
+      grid.innerHTML = '';
+
+      for (let i = 0; i < primeiroDia; i++) {
+        grid.innerHTML += `<div class="bg-gray-50/50 rounded-xl min-h-[90px]"></div>`;
+      }
+
+      for (let d = 1; d <= totalDias; d++) {
+        const dataStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const plantoesDoDia = Array.isArray(shifts) ? shifts.filter(s => s.shift_date.startsWith(dataStr)) : [];
+
+        let badges = plantoesDoDia.map(p => `
+          <div class="text-[10px] p-1 rounded font-semibold ${p.doctor_name ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'} truncate mb-1">
+            ${p.start_time.slice(0,5)} ${p.doctor_name || 'Vago'}
+          </div>
+        `).join('');
+
+        grid.innerHTML += `
+          <div onclick="abrirModalNovoPlantao('${dataStr}')" class="bg-white border border-gray-200 hover:border-brand p-2 rounded-xl min-h-[90px] cursor-pointer transition flex flex-col justify-between">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-bold text-gray-700">${d}</span>
+              <i class="fa-solid fa-plus text-[10px] text-gray-300 hover:text-brand"></i>
+            </div>
+            <div class="mt-1 flex-1 overflow-y-auto max-h-[60px]">${badges}</div>
+          </div>
+        `;
+      }
+    }
+
+    function mudarMesCalendario(delta) {
+      dataCalendarioAtual.setMonth(dataCalendarioAtual.getMonth() + delta);
+      renderizarCalendario();
     }
 
     // ==========================================
@@ -655,6 +844,8 @@
           carregarPlantoes();
           carregarEscalaGestor();
           carregarVisaoGeralGestor();
+          carregarGantt();
+          renderizarCalendario();
         } catch (err) {
           console.error(err);
           alert('Erro ao conectar com o servidor.');
@@ -678,6 +869,8 @@
         carregarPlantoes();
         carregarEscalaGestor();
         carregarVisaoGeralGestor();
+        carregarGantt();
+        renderizarCalendario();
       } catch (err) {
         console.error(err);
         alert('Erro ao excluir plantão.');
@@ -685,7 +878,7 @@
     }
 
     // ==========================================
-    // INTEGRACÃO: SOLICITAÇÕES / APROVAÇÕES
+    // INTEGRAÇÃO: SOLICITAÇÕES / APROVAÇÕES
     // ==========================================
     async function carregarSolicitacoes() {
       const tabela = document.getElementById('lista-solicitacoes');
@@ -706,7 +899,7 @@
         tabela.innerHTML = reqs.map(r => `
           <tr class="border-b border-gray-100 hover:bg-gray-50">
             <td class="px-6 py-4 text-xs font-bold uppercase ${r.request_type === 'troca' ? 'text-amber-600' : 'text-blue-600'}">${r.request_type}</td>
-            <td class="px-6 py-4 text-sm font-medium text-gray-800">${r.requester_name} <br><span class="text-xs text-gray-400">CRM ${r.requester_crm}</span></td>
+            <td class="px-6 py-4 text-sm font-medium text-gray-800">${r.requester_name} <br><span class="text-xs text-gray-400">CRM ${r.requester_crm || '-'}</span></td>
             <td class="px-6 py-4 text-sm text-gray-600">${new Date(r.shift_date).toLocaleDateString('pt-BR')} (${r.start_time.slice(0,5)}-${r.end_time.slice(0,5)}) - ${r.sector}</td>
             <td class="px-6 py-4 text-sm text-gray-600">${r.target_name || 'Vaga Aberta'}</td>
             <td class="px-6 py-4 text-sm space-x-2">
@@ -731,6 +924,8 @@
         alert(data.message || 'Atualizado com sucesso!');
         carregarSolicitacoes();
         carregarEscalaGestor();
+        carregarGantt();
+        renderizarCalendario();
       } catch (err) {
         console.error('Erro ao responder solicitação:', err);
       }
@@ -748,11 +943,9 @@
         const res = await fetch(`/api/manager/absences/weekly?start_date=${inicio}&end_date=${fim}`);
         const faltas = await res.json();
 
-        const grid = document.getElementById('gridSemanaFaltas');
         const detalhes = document.getElementById('lista-faltas-detalhes');
 
         if (!Array.isArray(faltas) || faltas.length === 0) {
-          grid.innerHTML = '<p class="col-span-7 text-center text-sm text-gray-500 py-4">Nenhuma falta registrada nesta semana.</p>';
           detalhes.innerHTML = '<p class="text-sm text-gray-500">Nenhum atestado ou justificativa pendente.</p>';
           return;
         }
@@ -760,7 +953,7 @@
         detalhes.innerHTML = faltas.map(f => `
           <div class="p-4 rounded-xl border ${f.prazo_48h_estourado ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-200'} flex justify-between items-center">
             <div>
-              <p class="text-sm font-bold ${f.prazo_48h_estourado ? 'text-red-800' : 'text-gray-800'}">${f.doctor_name} (CRM ${f.crm})</p>
+              <p class="text-sm font-bold ${f.prazo_48h_estourado ? 'text-red-800' : 'text-gray-800'}">${f.doctor_name} (CRM ${f.crm || '-'})</p>
               <p class="text-xs text-gray-500">Data da falta: ${new Date(f.absence_date).toLocaleDateString('pt-BR')} | Setor: ${f.sector || 'Geral'}</p>
               ${f.reason ? `<p class="text-xs text-gray-600 mt-1"><b>Justificativa:</b> ${f.reason}</p>` : ''}
               ${f.prazo_48h_estourado ? '<span class="inline-block mt-1 text-[11px] font-bold text-red-600"><i class="fa-solid fa-triangle-exclamation"></i> Prazo de 48h para justificativa esgotado! Notificado.</span>' : ''}
@@ -807,13 +1000,13 @@
         <div class="space-y-3">
           <div class="border-b border-gray-100 pb-2">
             <h4 class="font-bold text-gray-800 text-base">${medico.name}</h4>
-            <p class="text-xs text-gray-400">CRM: ${medico.crm} | Email: ${medico.email}</p>
+            <p class="text-xs text-gray-400">CRM: ${medico.crm || '-'} | Email: ${medico.email || '-'}</p>
           </div>
           <div class="grid grid-cols-2 gap-4 text-xs">
-            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Horas por Turno:</span><b>${medico.horas_por_turno}h</b></div>
-            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Máx. Plantões/Semana:</span><b>${medico.max_plantoes_semana}</b></div>
-            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Turno Preferido:</span><b class="capitalize">${medico.turno_preferido}</b></div>
-            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Dias Indisponíveis:</span><b>${medico.dias_indisponiveis}</b></div>
+            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Horas por Turno:</span><b>${medico.horas_por_turno || 12}h</b></div>
+            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Máx. Plantões/Semana:</span><b>${medico.max_plantoes_semana || 3}</b></div>
+            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Turno Preferido:</span><b class="capitalize">${medico.turno_preferido || 'Indiferente'}</b></div>
+            <div class="bg-gray-50 p-3 rounded-lg"><span class="text-gray-400 block">Dias Indisponíveis:</span><b>${medico.dias_indisponiveis || 'Nenhum'}</b></div>
           </div>
         </div>
       `;
